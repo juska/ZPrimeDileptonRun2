@@ -1,6 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
@@ -30,13 +29,12 @@ else:
   metLabel = "RECO"
   gt = gts['H']
 
-
+from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
 dataFormat = DataFormat.MiniAOD
 switchOnVIDElectronIdProducer(process, dataFormat)
-
-my_eid_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Summer16_80X_V1_cff']
+my_eid_modules = ['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V1_cff']
 for idmod in my_eid_modules:
-setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
 
 process.demo = cms.EDAnalyzer('ZDileptonAnalysis2017',
     fileName = cms.string("analysis" + OutputName + ".root"),
@@ -45,7 +43,7 @@ process.demo = cms.EDAnalyzer('ZDileptonAnalysis2017',
     muTag = cms.InputTag("slimmedAddPileupInfo"),
     muonTag = cms.InputTag("slimmedMuons"),
     electronTag = cms.InputTag("slimmedElectrons"),
-    eleVetoIdMapToken = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-veto")
+    eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V1-veto")
 )
 
 

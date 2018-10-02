@@ -78,7 +78,7 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
     edm::EDGetTokenT< edm::View<PileupSummaryInfo> > muTag_;
     edm::EDGetTokenT< edm::View<pat::Muon> > muonTag_;
     edm::EDGetTokenT< edm::View<pat::Electron> > electronTag_;
-    edm::EDGetTokenT<edm::ValueMap<vid::CutFlowResult> > eleVetoIdMapToken_;
+    edm::EDGetTokenT< edm::ValueMap<bool> > eleVetoIdMapToken_;
 
 
     TH1D* mass_totalEvts = new TH1D("mass_totalEvts","mass_totalEvts",500,0,5000);
@@ -98,7 +98,7 @@ ZDileptonAnalysis2017::ZDileptonAnalysis2017(const edm::ParameterSet& iConfig)
   muTag_ = consumes< edm::View<PileupSummaryInfo> >( iConfig.getParameter<edm::InputTag>("muTag") );
   muonTag_ = consumes< edm::View<pat::Muon> >( iConfig.getParameter<edm::InputTag>("muonTag") );
   electronTag_ = consumes< edm::View<pat::Electron> >( iConfig.getParameter<edm::InputTag>("electronTag") );
-  eleVetoIdMapToken_ = consumes<edm::ValueMap<vid::CutFlowResult> >( iConfig.getParameter<edm::InputTag>("eleVetoIdMapToken") );
+  eleVetoIdMapToken_ = consumes<edm::ValueMap<bool> >( iConfig.getParameter<edm::InputTag>("eleVetoIdMap") );
 }
 
 ZDileptonAnalysis2017::~ZDileptonAnalysis2017()
@@ -191,8 +191,12 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   iEvent.getByToken(electronTag_, electrons);
 
 
-  edm::Handle<edm::ValueMap<vid::CutFlowResult> > Veto_id_decisions;
-  iEvent.getByToken(eleVetoIdMapToken_, Veto_id_decisions);
+  //edm::Handle<edm::ValueMap<vid::CutFlowResult> > Veto_id_decisions;
+  //iEvent.getByToken(eleVetoIdMapToken_, Veto_id_decisions);
+
+  edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
+  iEvent.getByToken(eleVetoIdMapToken_ ,veto_id_decisions);
+
   vector<pair<reco::CandidatePtr, char> > leps;
 
   for (int i=0, n=muons->size(); i<n; i++) {
@@ -201,8 +205,9 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   }
   for (int i=0, n=electrons->size(); i<n; i++) {
     const Ptr<pat::Electron> elPtr(electrons, i);
-    bool isPassEleId  = (*Veto_id_decisions)[elPtr].cutFlowPassed();
-    cout << "for eles veto " << isPassEleId << endl;
+    bool isPassEleId  = (*veto_id_decisions)[elPtr];
+    cout << isPassEleId << endl;
+    //cout << "for eles veto " << isPassEleId << endl;
     //if (!(*Veto_id_decisions)[elPtr].cutFlowPassed()) { cout << "non veto ele " << endl; continue;}
     //leps.push_back( make_pair(electrons->ptrAt(i),'e') );
   }
