@@ -1,15 +1,3 @@
-// -*- C++ -*-
-//
-// Package:    analysis/ZDileptonAnalysis2017
-// Class:      ZDileptonAnalysis2017
-// 
-//
-//         Author:   Bahareh roozbahani Charles Harrington
-//         Created:  Mon, 01 Oct 2018 16:26:57 GMT
-//
-//
-
-
 #include <memory>
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/one/EDAnalyzer.h"
@@ -356,9 +344,9 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   bx = iEvent.bunchCrossing();
   event = iEvent.id().event();
   cout << " event " << event << endl;
-  double mass_ttbar = 0;
 
  //------------ MC :topPt, pdf, and q2 ------------//
+  double mass_ttbar = 0;
   if (isMC_) {
     edm::Handle< edm::View<reco::GenParticle> > genParticles;
     iEvent.getByToken(genParticleTag_, genParticles);
@@ -372,14 +360,14 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       int status = p.status();
       int nDaught = p.numberOfDaughters();
 
-      if (id==6 && 20<=status && status<30) { t_p4 = p.p4(); cout << i << "\t t first " << t_p4.Pt() << endl;}
+      if (id==6 && 20<=status && status<30)       t_p4 = p.p4(); 
       else if (id==-6 && 20<=status && status<30) tbar_p4 = p.p4();
 
       else if (fabs(id)==6 && nDaught==2) {   //last t's
         const reco::GenParticle& daught0 = genParticles->at( p.daughterRef(0).key() );
 
         if ( fabs(daught0.pdgId())==5 || fabs(daught0.pdgId())==24 ) {
-          if (id==6) { t_pt2 = p.pt(); cout << i << "\t t last " << t_pt2 << endl;}
+          if (id==6) t_pt2 = p.pt();
           else       tbar_pt2 = p.pt();
         }
       }
@@ -803,7 +791,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
       for (int i=0, n=triggerResults->size(); i<n; i++){
         name = triggerNames.triggerName(i);
-        if (name.substr(0, len) == myTrigger) {index = i; cout << "run \t" << run << "\t event \t" << "\texisting trigger\t" << name << endl; break;}
+        if (name.substr(0, len) == myTrigger) {index = i; break;}
       }
       if (index == -1) continue;
 
