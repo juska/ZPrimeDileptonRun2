@@ -21,7 +21,7 @@ float getAvgPU(int run, int ls) {
   else return m_PU[run][ls];
 }
 
-int parsePileUpJSON2(string filename="pileup_12_6_16.txt") {
+int parsePileUpJSON2(string filename="pileupjson_cert_294927_306462.txt") {
 /*
   //### Using Brilcalc ###//
   cout << "Opening " << filename << "...";
