@@ -392,7 +392,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     wgt_env.clear(); wgt_rep.clear();
     edm::Handle<GenEventInfoProduct> genEventHandle;
     //nominal weight = 1, twiki says this must be activated
-    if ( iEvent.getByToken(genEventTag_, genEventHandle) ) genEventHandle->weight(); // why we dont use this?
+    if ( iEvent.getByToken(genEventTag_, genEventHandle) ) genEventHandle->weight();
     edm::Handle<LHEEventProduct> lheEvtProduct;
     if ( iEvent.getByToken(extLHETag_ , lheEvtProduct) ) {
       float wgt_denom = lheEvtProduct->weights()[0].wgt;
