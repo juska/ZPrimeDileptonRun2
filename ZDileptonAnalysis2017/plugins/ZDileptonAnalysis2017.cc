@@ -25,6 +25,7 @@
 #include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h"
 #include <SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h>
 //#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+#include "DataFormats/PatCandidates/interface/VIDCutFlowResult.h"
 #include "parsePileUpJSON2.h"
 #include <vector>
 #include <algorithm>
@@ -34,7 +35,6 @@
 #include <TVector.h>
 #include <TH1.h>
 #include <TH2.h>
-
 
 using namespace std;
 using namespace edm;
@@ -61,6 +61,7 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       virtual void endJob() override;
 
       double rms_pm(const vector<float>& vec) const;
+      void printCutFlowResult(vid::CutFlowResult &cutflow);
 
       TFile* root_file;
       TTree* tree;
@@ -146,10 +147,10 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       edm::EDGetTokenT<double> rhoTag_;
       edm::EDGetTokenT< edm::View<reco::Vertex> > pvTag_;
       edm::EDGetTokenT< edm::View<reco::GenJet> > genJetTag_;
-      edm::EDGetTokenT< edm::ValueMap<bool> > eleVetoIdMapToken_;
-      edm::EDGetTokenT< edm::ValueMap<bool> > eleLooseIdMapToken_;
-      edm::EDGetTokenT< edm::ValueMap<bool> > eleMediumIdMapToken_;
-      edm::EDGetTokenT< edm::ValueMap<bool> > eleTightIdMapToken_;
+      edm::EDGetTokenT< edm::ValueMap<vid::CutFlowResult> > eleVetoIdMapToken_;
+      edm::EDGetTokenT< edm::ValueMap<vid::CutFlowResult> > eleLooseIdMapToken_;
+      edm::EDGetTokenT< edm::ValueMap<vid::CutFlowResult> > eleMediumIdMapToken_;
+      edm::EDGetTokenT< edm::ValueMap<vid::CutFlowResult> > eleTightIdMapToken_;
       EffectiveAreas ele_areas_;
       edm::EDGetTokenT< edm::View<pat::MET> > metTag_;
       edm::EDGetTokenT<edm::TriggerResults> triggerResultsTag_;
@@ -204,10 +205,10 @@ ZDileptonAnalysis2017::ZDileptonAnalysis2017(const edm::ParameterSet& iConfig):
   rhoTag_ = consumes<double>( iConfig.getParameter<edm::InputTag>("rhoTag") );
   pvTag_ = consumes< edm::View<reco::Vertex> >( iConfig.getParameter<edm::InputTag>("pvTag") );
   genJetTag_ = consumes< edm::View<reco::GenJet> >( iConfig.getParameter<edm::InputTag>("genJetTag") );
-  eleVetoIdMapToken_ = consumes<edm::ValueMap<bool> >( iConfig.getParameter<edm::InputTag>("eleVetoIdMap") );
-  eleLooseIdMapToken_ = consumes<edm::ValueMap<bool> >( iConfig.getParameter<edm::InputTag>("eleLooseIdMap") );
-  eleMediumIdMapToken_ = consumes<edm::ValueMap<bool> >( iConfig.getParameter<edm::InputTag>("eleMediumIdMap") );
-  eleTightIdMapToken_ = consumes<edm::ValueMap<bool> >( iConfig.getParameter<edm::InputTag>("eleTightIdMap") );
+  eleVetoIdMapToken_ = consumes<edm::ValueMap<vid::CutFlowResult> >( iConfig.getParameter<edm::InputTag>("eleVetoIdMap") );
+  eleLooseIdMapToken_ = consumes<edm::ValueMap<vid::CutFlowResult> >( iConfig.getParameter<edm::InputTag>("eleLooseIdMap") );
+  eleMediumIdMapToken_ = consumes<edm::ValueMap<vid::CutFlowResult> >( iConfig.getParameter<edm::InputTag>("eleMediumIdMap") );
+  eleTightIdMapToken_ = consumes<edm::ValueMap<vid::CutFlowResult> >( iConfig.getParameter<edm::InputTag>("eleTightIdMap") );
   metTag_ = consumes< edm::View<pat::MET> >( iConfig.getParameter<edm::InputTag>("metTag") );
   triggerResultsTag_ = consumes<edm::TriggerResults>( iConfig.getParameter<edm::InputTag>("triggerResultsTag") );
   prescalesTag_ = consumes<pat::PackedTriggerPrescales>( iConfig.getParameter<edm::InputTag>("prescalesTag") );
@@ -343,7 +344,6 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   lumi = int(iEvent.getLuminosityBlock().luminosityBlock());
   bx = iEvent.bunchCrossing();
   event = iEvent.id().event();
-  cout << " event " << event << endl;
 
  //------------ MC :topPt, pdf, and q2 ------------//
   double mass_ttbar = 0;
@@ -441,8 +441,8 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   iEvent.getByToken(muonTag_, muons);
   edm::Handle< edm::View<pat::Electron> > electrons;
   iEvent.getByToken(electronTag_, electrons);
-  edm::Handle<edm::ValueMap<bool> > Veto_id_decisions;
-  iEvent.getByToken(eleVetoIdMapToken_ ,Veto_id_decisions);
+  edm::Handle<edm::ValueMap<vid::CutFlowResult> > Veto_id_decisions;
+  iEvent.getByToken(eleVetoIdMapToken_, Veto_id_decisions);
 
   vector<pair<reco::CandidatePtr, char> > leps;
 
@@ -450,9 +450,10 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     if (!muons->at(i).isLooseMuon()) continue;
     leps.push_back( make_pair(muons->ptrAt(i),'m') );
   }
+  const int isoCut = 7; //cutname = GsfEleRelPFIsoScaledCut_0, to mask isolation for boosted electrons
   for (int i=0, n=electrons->size(); i<n; i++) {
     const Ptr<pat::Electron> elPtr(electrons, i);
-    if (!(*Veto_id_decisions)[elPtr]) continue;
+    if (!(*Veto_id_decisions)[elPtr].getCutFlowResultMasking(isoCut).cutFlowPassed()) continue;
     leps.push_back( make_pair(electrons->ptrAt(i),'e') );
   }
 
@@ -570,7 +571,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
           return;
         }
       }
-      else cout << metfilters[i] << " not found." << endl;
+      //else cout << metfilters[i] << " not found." << endl;
     }
 
   }
@@ -669,7 +670,6 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       nGenJet++;
     }
   }
-
   //--------------Muons-------------//
   nMuon = 0;
   for (int i=0, n=muons->size(); i<n; i++){
@@ -677,7 +677,6 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     if ( muons->at(i).pt() < 15 || !muons->at(i).isLooseMuon() ) continue;
     const pat::Muon& muon = muons->at(i);
     muon_isGlob[nMuon] = muon.isGlobalMuon();
-    cout << muon_isGlob[nMuon] << endl;
     muon_charge[nMuon] = muon.charge();
     muon_pt[nMuon] = muon.pt();
     muon_eta[nMuon] = muon.eta();
@@ -697,24 +696,30 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     muon_IsMediumID[nMuon] = muon.isMediumMuon();
     muon_IsTightID[nMuon] = muon.isTightMuon(pvtx);   
 
-    nMuon++;
+    nMuon++; 
   }
 
 
   //------------ Electrons ------------//
 
-  edm::Handle<edm::ValueMap<bool> > Loose_id_decisions;
+  edm::Handle<edm::ValueMap<vid::CutFlowResult>> Loose_id_decisions;
   iEvent.getByToken(eleLooseIdMapToken_, Loose_id_decisions);
-  edm::Handle<edm::ValueMap<bool> > Medium_id_decisions;
+  edm::Handle<edm::ValueMap<vid::CutFlowResult>> Medium_id_decisions;
   iEvent.getByToken(eleMediumIdMapToken_, Medium_id_decisions);
-  edm::Handle<edm::ValueMap<bool> > Tight_id_decisions;
+  edm::Handle<edm::ValueMap<vid::CutFlowResult>> Tight_id_decisions;
   iEvent.getByToken(eleTightIdMapToken_, Tight_id_decisions);
   nEle = 0;
+
   for (int i=0, n=electrons->size(); i<n; i++){
     const pat::Electron& ele = electrons->at(i);
     const Ptr<pat::Electron> elPtr(electrons, i);
    //save only veto electrons (without isocut) above 15 gev
-    if (ele.pt() < 15 || !(*Veto_id_decisions)[elPtr]) continue;
+
+    //vid::CutFlowResult fullCutFlowData = (*Veto_id_decisions)[elPtr];
+    //printf("\nDEBUG CutFlow, full info for cand with pt=%f:\n", elPtr->pt());
+    //printCutFlowResult(fullCutFlowData);
+
+    if (ele.pt() < 15 || !(*Veto_id_decisions)[elPtr].getCutFlowResultMasking(isoCut).cutFlowPassed()) continue;
     ele_charge[nEle] = ele.charge();
     ele_pt[nEle] = ele.pt();
     ele_eta[nEle] = ele.eta();
@@ -739,9 +744,9 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     reco::GsfElectron::PflowIsolationVariables pfIso = ele.pfIsolationVariables();
     float eA = ele_areas_.getEffectiveArea( fabs(ele_etaSupClust[nEle]) );
     ele_rcpiwec[nEle] = ( pfIso.sumChargedHadronPt + max( 0.0f, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - eA*rho) ) / ele_pt[nEle];
-    ele_LooseID[nEle]  = (*Loose_id_decisions)[elPtr];
-    ele_MediumID[nEle] = (*Medium_id_decisions)[elPtr];
-    ele_TightID[nEle]  = (*Tight_id_decisions)[elPtr];
+    ele_LooseID[nEle]  = (*Loose_id_decisions)[elPtr].getCutFlowResultMasking(isoCut).cutFlowPassed();
+    ele_MediumID[nEle] = (*Medium_id_decisions)[elPtr].getCutFlowResultMasking(isoCut).cutFlowPassed();
+    ele_TightID[nEle] = (*Tight_id_decisions)[elPtr].getCutFlowResultMasking(isoCut).cutFlowPassed();
     nEle++;
   }
 
@@ -882,6 +887,25 @@ double ZDileptonAnalysis2017::rms_pm(const vector<float>& vec) const {
   for (int i=0; i<size; i++) sum += ( vec[i]-1. )*( vec[i]-1. );
 
   return sqrt(sum / size);
+}
+
+
+void ZDileptonAnalysis2017::printCutFlowResult(vid::CutFlowResult &cutflow){
+
+  printf("    CutFlow name= %s    decision is %d\n", 
+      cutflow.cutFlowName().c_str(),
+      (int) cutflow.cutFlowPassed());
+  int ncuts = cutflow.cutFlowSize();
+  printf(" Index                               cut name              isMasked    value-cut-upon     pass?\n");
+  for(int icut = 0; icut<ncuts; icut++){
+    printf("  %2d      %50s    %d        %f          %d\n", icut,
+        cutflow.getNameAtIndex(icut).c_str(),
+        (int)cutflow.isCutMasked(icut),
+        cutflow.getValueCutUpon(icut),
+        (int)cutflow.getCutResultByIndex(icut));
+  }
+  printf("    WARNING: the value-cut-upon is bugged in 7.4.7, it is always 0.0 or 1.0\n");
+
 }
 
 //define this as a plug-in
