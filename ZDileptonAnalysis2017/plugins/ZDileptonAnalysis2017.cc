@@ -709,15 +709,19 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   edm::Handle<edm::ValueMap<vid::CutFlowResult>> Tight_id_decisions;
   iEvent.getByToken(eleTightIdMapToken_, Tight_id_decisions);
   nEle = 0;
-
   for (int i=0, n=electrons->size(); i<n; i++){
     const pat::Electron& ele = electrons->at(i);
     const Ptr<pat::Electron> elPtr(electrons, i);
    //save only veto electrons (without isocut) above 15 gev
 
-    //vid::CutFlowResult fullCutFlowData = (*Veto_id_decisions)[elPtr];
-    //printf("\nDEBUG CutFlow, full info for cand with pt=%f:\n", elPtr->pt());
-    //printCutFlowResult(fullCutFlowData);
+    /*printf("\n with pT %f", elPtr->pt());    
+    vid::CutFlowResult fullCutFlowData_nomasking = (*Veto_id_decisions)[elPtr];
+    printf("\nno masking:\n");    
+    printCutFlowResult(fullCutFlowData_nomasking);
+    printf("\n=============================\n");
+    printf("\nmasking iso cut:\n");    
+    vid::CutFlowResult fullCutFlowData = (*Veto_id_decisions)[elPtr].getCutFlowResultMasking(isoCut);
+    printCutFlowResult(fullCutFlowData);*/
 
     if (ele.pt() < 15 || !(*Veto_id_decisions)[elPtr].getCutFlowResultMasking(isoCut).cutFlowPassed()) continue;
     ele_charge[nEle] = ele.charge();
