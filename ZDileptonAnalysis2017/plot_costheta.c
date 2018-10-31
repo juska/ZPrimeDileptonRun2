@@ -73,10 +73,8 @@ void plot_costheta(){
 
   text.SetTextColor(4);
   text.DrawLatex(0.2, 0.9, Form("TTBar mean = %4.3f , stdDev = %4.3f", h_top_costheta["ttbar"]->GetMean(), h_top_costheta["ttbar"]->GetStdDev() ) );
-  text.SetTextColor(3);
   text.SetTextColor(2);
   text.DrawLatex(0.2, 0.85, Form("g_{kk} mean = %4.3f , stdDev = %4.3f", h_top_costheta["gkk"]->GetMean(), h_top_costheta["gkk"]->GetStdDev() ) );
-  text.SetTextColor(3);
   text.SetTextColor(3);
   text.DrawLatex(0.2, 0.8, Form("Z' mean = %4.3f , stdDev = %4.3f", h_top_costheta["zprime"]->GetMean(), h_top_costheta["zprime"]->GetStdDev() ) );
   c->Print("costop.pdf");
@@ -103,7 +101,6 @@ void plot_costheta(){
   text.DrawLatex(0.2, 0.85, Form("g_{kk} mean = %4.3f , stdDev = %4.3f", h_antitop_costheta["gkk"]->GetMean(), h_antitop_costheta["gkk"]->GetStdDev() ) );
   text.SetTextColor(3);
   text.DrawLatex(0.2, 0.8, Form("Z' mean = %4.3f , stdDev = %4.3f", h_antitop_costheta["zprime"]->GetMean(), h_antitop_costheta["zprime"]->GetStdDev() ) );
-  text.SetTextColor(3);
   c->Print("cosantitop.pdf");
   leg->Clear();
   c->Clear();
