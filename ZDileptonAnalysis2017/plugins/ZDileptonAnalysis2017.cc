@@ -35,6 +35,7 @@
 #include <TVector.h>
 #include <TH1.h>
 #include <TH2.h>
+#include "TLorentzVector.h"
 
 using namespace std;
 using namespace edm;
@@ -43,6 +44,7 @@ bool sortLepPt(const pair<reco::CandidatePtr, char>& lep1, const pair<reco::Cand
 const int MAXJET = 50;
 const int nFilters = 9;
 const int MAXGEN = 20;
+const int MAXTOPLEP = 1; 
 const int MAXLEP = 20;
 const int METUNCERT = 4;
 const int nTriggers = 10;
@@ -84,8 +86,11 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       float jet_elef[MAXJET], jet_numneutral[MAXJET], jet_chmult[MAXJET];
 
       int nGen;
+      int ntopleps;
+      int nantitopleps;
       int gen_status[MAXGEN], gen_PID[MAXGEN], gen_mother0[MAXGEN], gen_mother1[MAXGEN], gen_index[MAXGEN];
       float gen_pt[MAXGEN], gen_mass[MAXGEN], gen_eta[MAXGEN], gen_phi[MAXGEN];
+      float lep_top_costheta[MAXTOPLEP], lep_antitop_costheta[MAXTOPLEP];
       int nGenJet;
       float genJet_pt[MAXJET], genJet_eta[MAXJET], genJet_phi[MAXJET], genJet_mass[MAXJET], genJet_area[MAXJET], genJet_nDaught[MAXJET];
 
@@ -312,6 +317,10 @@ ZDileptonAnalysis2017::beginJob()
     tree->Branch("gen_index",  gen_index, "gen_index[nGen]/I");
     tree->Branch("gen_mother0", gen_mother0, "gen_mother0[nGen]/I");
     tree->Branch("gen_mother1", gen_mother1, "gen_mother1[nGen]/I");
+    tree->Branch("ntopleps", &ntopleps, "ntopleps/I");
+    tree->Branch("nantitopleps", &nantitopleps, "nantitopleps/I");
+    tree->Branch("lep_top_costheta",  lep_top_costheta, "lep_top_costheta[ntopleps]/F");
+    tree->Branch("lep_antitop_costheta",  lep_antitop_costheta, "lep_antitop_costheta[nantitopleps]/F");
 
     tree->Branch("nGenJet", &nGenJet, "nGenJet/I");
     tree->Branch("genJet_pt", genJet_pt, "genJet_pt[nGenJet]/F");
@@ -609,6 +618,9 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     edm::Handle< edm::View<reco::GenParticle> > genParticles;
     iEvent.getByToken(genParticleTag_, genParticles);
     vector<pair<reco::GenParticle, int> > reducedGens;
+    TLorentzVector top, top_com , antitop, antitop_com;
+    TVector3 beta_top , beta_antitop;
+
     for (int i=0, n=genParticles->size(); i<n; i++) {
       const reco::GenParticle& p = genParticles->at(i);
       int id = p.pdgId();
@@ -620,6 +632,29 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         reducedGens.push_back(make_pair(p,i));
 
       else if (fabs(id)==6 && nDaught==2) {   //last t's
+
+        if(p.pdgId()==6){
+          top.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
+          beta_top =  top.BoostVector() ;
+     	  beta_top *= -1 ;
+     	  top_com = top ;
+          top_com.Boost(beta_top);
+          //cout << " Top before and after boost: px, py, pz, E, mass " << endl ;
+          //cout << "\t" <<  top.Px()     << " " << top.Py() << " " << top.Pz() << " "  << top.E()   << " " << top.M()     << endl ; 
+          //cout << "\t" << top_com.Px() << " " << top_com.Py() << " " << top_com.Pz() <<  " "  << top_com.E()   << " " << top_com.M() << endl << endl;
+
+        }
+        else if(p.pdgId()==-6){
+          antitop.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
+          beta_antitop =  antitop.BoostVector() ;
+     	  beta_antitop *= -1 ;
+     	  antitop_com = antitop ;
+          antitop_com.Boost(beta_antitop);
+          //cout << " Anti Top before and after boost: px, py, pz, E, mass " << endl ;
+          //cout << "\t" <<  antitop.Px()     << " " << antitop.Py() << " " << antitop.Pz() << " "  << antitop.E()   << " " << antitop.M()     << endl ; 
+          //cout << "\t" << antitop_com.Px() << " " << antitop_com.Py() << " " << antitop_com.Pz() <<  " "  << antitop_com.E()   << " " << antitop_com.M() << endl << endl;
+
+        }
         const reco::GenParticle& daught0 = genParticles->at( p.daughterRef(0).key() );
         if ( fabs(daught0.pdgId())==5 || fabs(daught0.pdgId())==24 ) {
           reducedGens.push_back(make_pair(p,i));
@@ -636,6 +671,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       }
     }
     nGen = reducedGens.size();
+    ntopleps = 0; nantitopleps = 0;
     for (int i=0; i<nGen; i++) {
       const reco::GenParticle& p = reducedGens[i].first;
       gen_status[i] = p.status();
@@ -650,6 +686,33 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       if (p.numberOfMothers() > 1) gen_mother1[i] = p.motherRef(1).key();
       else gen_mother1[i] = -1;
 
+
+      if ((p.pdgId()==-11 || p.pdgId()==-13) && beta_top.Mag() > 0.00000001){
+        TLorentzVector top_lep, top_lep_boosted ;
+        top_lep.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
+        top_lep_boosted = top_lep;
+        top_lep_boosted.Boost(beta_top);
+        //cout << " top Lepton before and after boost: pt, eta, phi, mass " << endl ;
+        //cout << top_lep.Px() << " " << top_lep.Py() << " " << top_lep.Pz() << " " << top_lep.E()  << " "  << top_lep.M() << endl ;
+        //cout << top_lep_boosted.Px() << " " << top_lep_boosted.Py() << " " << top_lep_boosted.Pz() << " " << top_lep_boosted.E() << " " << top_lep_boosted.M() << endl << endl;
+        double top_costheta = (top_lep_boosted.Px()*top.Px() +top_lep_boosted.Py()*top.Py() + top_lep_boosted.Pz()*top.Pz())/(top_lep_boosted.P()*top.P()) ;
+        //cout << "costheta of top and lep" <<"\t" << top_costheta << endl;
+        lep_top_costheta[ntopleps] = top_costheta;
+        ntopleps ++;
+      }
+      if ((p.pdgId()==+11 || p.pdgId()==+13) && beta_antitop.Mag() > 0.00000001){
+        TLorentzVector antitop_lep, antitop_lep_boosted ;
+        antitop_lep.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
+        antitop_lep_boosted = antitop_lep;
+        antitop_lep_boosted.Boost(beta_antitop);
+        //cout << " antitop Lepton before and after boost: pt, eta, phi, mass " << endl ;
+        //cout << antitop_lep.Px() << " " << antitop_lep.Py() << " " << antitop_lep.Pz() << " " << antitop_lep.E()  << " "  << antitop_lep.M() << endl ;
+        //cout << antitop_lep_boosted.Px() << " " << antitop_lep_boosted.Py() << " " << antitop_lep_boosted.Pz() << " " << antitop_lep_boosted.E() << " " << antitop_lep_boosted.M() << endl << endl;
+        double antitop_costheta = (antitop_lep_boosted.Px()*antitop.Px() +antitop_lep_boosted.Py()*antitop.Py() + antitop_lep_boosted.Pz()*antitop.Pz())/(antitop_lep_boosted.P()*antitop.P()) ;
+        //cout << "costheta of antitop and lep" <<"\t" << antitop_costheta << endl;
+        lep_antitop_costheta[nantitopleps] = antitop_costheta;
+        nantitopleps ++;
+      }     
     }
 
     edm::Handle< edm::View<reco::GenJet> > genJets;
