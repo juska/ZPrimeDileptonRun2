@@ -613,14 +613,15 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   }
 
 //-------------- Generated Particles -------------//
-
   if(isMC_) {
     edm::Handle< edm::View<reco::GenParticle> > genParticles;
     iEvent.getByToken(genParticleTag_, genParticles);
     vector<pair<reco::GenParticle, int> > reducedGens;
     TLorentzVector top, top_com , antitop, antitop_com;
     TVector3 beta_top , beta_antitop;
-
+    TLorentzVector LEPfromTOP, LEPfromANTITOP;
+    vector<float> costopandleps, cosantitopandleps;
+    
     for (int i=0, n=genParticles->size(); i<n; i++) {
       const reco::GenParticle& p = genParticles->at(i);
       int id = p.pdgId();
@@ -636,25 +637,97 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         if(p.pdgId()==6){
           top.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
           beta_top =  top.BoostVector() ;
-     	  beta_top *= -1 ;
-     	  top_com = top ;
-          top_com.Boost(beta_top);
-          //cout << " Top before and after boost: px, py, pz, E, mass " << endl ;
-          //cout << "\t" <<  top.Px()     << " " << top.Py() << " " << top.Pz() << " "  << top.E()   << " " << top.M()     << endl ; 
-          //cout << "\t" << top_com.Px() << " " << top_com.Py() << " " << top_com.Pz() <<  " "  << top_com.E()   << " " << top_com.M() << endl << endl;
+          const reco::GenParticle& top_daughter0 = genParticles->at(p.daughterRef(0).key() );
+          const reco::GenParticle& top_daughter1 = genParticles->at(p.daughterRef(1).key() );
+          const reco::GenParticle* wfromtop = nullptr;
+          const reco::GenParticle* lastdecayingw = nullptr;
+          if (top_daughter0.pdgId() == 24 || top_daughter1.pdgId() == 24){
+            top_daughter0.pdgId() == 24  ? wfromtop = &top_daughter0 : wfromtop = &top_daughter1;
+          }
+          if ( wfromtop != nullptr && wfromtop->numberOfDaughters()==2 ){
+            const reco::GenParticle& w_daugh0 = genParticles->at(wfromtop->daughterRef(0).key() );
+            const reco::GenParticle& w_daugh1 = genParticles->at(wfromtop->daughterRef(1).key() );
+            if ( w_daugh0.pdgId() == -11 || w_daugh0.pdgId() == -13 ){
+              LEPfromTOP.SetPtEtaPhiM( w_daugh0.pt(), w_daugh0.eta(), w_daugh0.phi(), w_daugh0.mass() );     
+            }
+            if ( w_daugh1.pdgId() == -11 || w_daugh1.pdgId() == -13 ){ 
+              LEPfromTOP.SetPtEtaPhiM( w_daugh1.pt(), w_daugh1.eta(), w_daugh1.phi(), w_daugh1.mass() );
+            }
+          }
+
+          else if ( wfromtop != nullptr && wfromtop->numberOfDaughters()==1 ){
+            lastdecayingw = wfromtop ;
+            // while condition finds last decaying w
+            while( lastdecayingw->numberOfDaughters()== 1 && genParticles->at(lastdecayingw->daughterRef(0).key() ).pdgId()==24){           
+              const reco::GenParticle& wdecendent = genParticles->at(lastdecayingw->daughterRef(0).key() );  
+              lastdecayingw = & wdecendent;
+            } 
+          }
+          if ( lastdecayingw != nullptr  ){
+            const reco::GenParticle& lastw_daugh0 = genParticles->at(lastdecayingw->daughterRef(0).key() );
+            const reco::GenParticle& lastw_daugh1 = genParticles->at(lastdecayingw->daughterRef(1).key() );
+            if ( lastw_daugh0.pdgId() == -11 || lastw_daugh0.pdgId() == -13 ){
+              LEPfromTOP.SetPtEtaPhiM( lastw_daugh0.pt(), lastw_daugh0.eta(), lastw_daugh0.phi(), lastw_daugh0.mass() );     
+            }  
+            if ( lastw_daugh1.pdgId() == -11 || lastw_daugh1.pdgId() == -13 ){
+              LEPfromTOP.SetPtEtaPhiM( lastw_daugh1.pt(), lastw_daugh1.eta(), lastw_daugh1.phi(), lastw_daugh1.mass() );     
+            } 
+          }
+
+          if ( LEPfromTOP.Mag() == 0 ) continue;
+          LEPfromTOP.Boost(-beta_top);
+          costopandleps.push_back(LEPfromTOP.Vect().Unit().Dot(-beta_top.Unit()));
 
         }
-        else if(p.pdgId()==-6){
+
+
+
+
+        if(p.pdgId()==-6){
           antitop.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
           beta_antitop =  antitop.BoostVector() ;
-     	  beta_antitop *= -1 ;
-     	  antitop_com = antitop ;
-          antitop_com.Boost(beta_antitop);
-          //cout << " Anti Top before and after boost: px, py, pz, E, mass " << endl ;
-          //cout << "\t" <<  antitop.Px()     << " " << antitop.Py() << " " << antitop.Pz() << " "  << antitop.E()   << " " << antitop.M()     << endl ; 
-          //cout << "\t" << antitop_com.Px() << " " << antitop_com.Py() << " " << antitop_com.Pz() <<  " "  << antitop_com.E()   << " " << antitop_com.M() << endl << endl;
+          const reco::GenParticle& antitop_daughter0 = genParticles->at(p.daughterRef(0).key() );
+          const reco::GenParticle& antitop_daughter1 = genParticles->at(p.daughterRef(1).key() );
+          const reco::GenParticle* wfromantitop = nullptr;
+          const reco::GenParticle* lastdecayingw = nullptr;
+          if (antitop_daughter0.pdgId() == -24 || antitop_daughter1.pdgId() == -24){
+            antitop_daughter0.pdgId() == -24  ? wfromantitop = &antitop_daughter0 : wfromantitop = &antitop_daughter1;
+          }
+          if ( wfromantitop != nullptr && wfromantitop->numberOfDaughters()==2 ){
+            const reco::GenParticle& w_daugh0 = genParticles->at(wfromantitop->daughterRef(0).key() );
+            const reco::GenParticle& w_daugh1 = genParticles->at(wfromantitop->daughterRef(1).key() );
+            if ( w_daugh0.pdgId() == 11 || w_daugh0.pdgId() == 13 ){
+              LEPfromANTITOP.SetPtEtaPhiM( w_daugh0.pt(), w_daugh0.eta(), w_daugh0.phi(), w_daugh0.mass() );     
+            }
+            if ( w_daugh1.pdgId() == 11 || w_daugh1.pdgId() == 13 ){ 
+              LEPfromANTITOP.SetPtEtaPhiM( w_daugh1.pt(), w_daugh1.eta(), w_daugh1.phi(), w_daugh1.mass() );
+            }
+          }
+          else if ( wfromantitop != nullptr && wfromantitop->numberOfDaughters()==1 ){
+            lastdecayingw = wfromantitop ;
+            // while condition finds last decaying w
+            while( lastdecayingw->numberOfDaughters()== 1 && genParticles->at(lastdecayingw->daughterRef(0).key() ).pdgId()==-24){           
+              const reco::GenParticle& wdecendent = genParticles->at(lastdecayingw->daughterRef(0).key() );  
+              lastdecayingw = & wdecendent;
+            } 
+          }
+          if ( lastdecayingw != nullptr  ){
+            const reco::GenParticle& lastw_daugh0 = genParticles->at(lastdecayingw->daughterRef(0).key() );
+            const reco::GenParticle& lastw_daugh1 = genParticles->at(lastdecayingw->daughterRef(1).key() );
+            if ( lastw_daugh0.pdgId() == 11 || lastw_daugh0.pdgId() == 13 ){
+              LEPfromANTITOP.SetPtEtaPhiM( lastw_daugh0.pt(), lastw_daugh0.eta(), lastw_daugh0.phi(), lastw_daugh0.mass() );     
+            }  
+            if ( lastw_daugh1.pdgId() == 11 || lastw_daugh1.pdgId() == 13 ){
+              LEPfromANTITOP.SetPtEtaPhiM( lastw_daugh1.pt(), lastw_daugh1.eta(), lastw_daugh1.phi(), lastw_daugh1.mass() );     
+            } 
+          }
+
+          if ( LEPfromANTITOP.Mag() == 0 ) continue;
+          LEPfromANTITOP.Boost(-beta_antitop);
+          cosantitopandleps.push_back(LEPfromANTITOP.Vect().Unit().Dot(-beta_antitop.Unit()));
 
         }
+
         const reco::GenParticle& daught0 = genParticles->at( p.daughterRef(0).key() );
         if ( fabs(daught0.pdgId())==5 || fabs(daught0.pdgId())==24 ) {
           reducedGens.push_back(make_pair(p,i));
@@ -670,9 +743,13 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         reducedGens.push_back(make_pair( genParticles->at(p.daughterRef(1).key()),p.daughterRef(1).key()) ); //q or lep
       }
     }
+    ntopleps = costopandleps.size();
+    if (ntopleps>0) lep_top_costheta[0] = costopandleps[0];
+    nantitopleps = cosantitopandleps.size();
+    if (nantitopleps>0) lep_antitop_costheta[0] = cosantitopandleps[0];
     nGen = reducedGens.size();
-    ntopleps = 0; nantitopleps = 0;
     for (int i=0; i<nGen; i++) {
+      //cout << "\n  \t  #   \t status   \t PID   \t pt   \t mass   \t eta   \t phi   \t index   \t mother0   \t mother1 "<< endl;
       const reco::GenParticle& p = reducedGens[i].first;
       gen_status[i] = p.status();
       gen_PID[i] = p.pdgId();
@@ -685,34 +762,9 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       else gen_mother0[i] = -1;
       if (p.numberOfMothers() > 1) gen_mother1[i] = p.motherRef(1).key();
       else gen_mother1[i] = -1;
-
-
-      if ((p.pdgId()==-11 || p.pdgId()==-13) && beta_top.Mag() > 0.00000001){
-        TLorentzVector top_lep, top_lep_boosted ;
-        top_lep.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
-        top_lep_boosted = top_lep;
-        top_lep_boosted.Boost(beta_top);
-        //cout << " top Lepton before and after boost: pt, eta, phi, mass " << endl ;
-        //cout << top_lep.Px() << " " << top_lep.Py() << " " << top_lep.Pz() << " " << top_lep.E()  << " "  << top_lep.M() << endl ;
-        //cout << top_lep_boosted.Px() << " " << top_lep_boosted.Py() << " " << top_lep_boosted.Pz() << " " << top_lep_boosted.E() << " " << top_lep_boosted.M() << endl << endl;
-        double top_costheta = (top_lep_boosted.Px()*top.Px() +top_lep_boosted.Py()*top.Py() + top_lep_boosted.Pz()*top.Pz())/(top_lep_boosted.P()*top.P()) ;
-        //cout << "costheta of top and lep" <<"\t" << top_costheta << endl;
-        lep_top_costheta[ntopleps] = top_costheta;
-        ntopleps ++;
-      }
-      if ((p.pdgId()==+11 || p.pdgId()==+13) && beta_antitop.Mag() > 0.00000001){
-        TLorentzVector antitop_lep, antitop_lep_boosted ;
-        antitop_lep.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
-        antitop_lep_boosted = antitop_lep;
-        antitop_lep_boosted.Boost(beta_antitop);
-        //cout << " antitop Lepton before and after boost: pt, eta, phi, mass " << endl ;
-        //cout << antitop_lep.Px() << " " << antitop_lep.Py() << " " << antitop_lep.Pz() << " " << antitop_lep.E()  << " "  << antitop_lep.M() << endl ;
-        //cout << antitop_lep_boosted.Px() << " " << antitop_lep_boosted.Py() << " " << antitop_lep_boosted.Pz() << " " << antitop_lep_boosted.E() << " " << antitop_lep_boosted.M() << endl << endl;
-        double antitop_costheta = (antitop_lep_boosted.Px()*antitop.Px() +antitop_lep_boosted.Py()*antitop.Py() + antitop_lep_boosted.Pz()*antitop.Pz())/(antitop_lep_boosted.P()*antitop.P()) ;
-        //cout << "costheta of antitop and lep" <<"\t" << antitop_costheta << endl;
-        lep_antitop_costheta[nantitopleps] = antitop_costheta;
-        nantitopleps ++;
-      }     
+      //cout << "\t" << i <<  "\t" <<  gen_status[i] << "\t" <<  gen_PID[i] << "\t" << gen_pt[i]  << "\t" << gen_mass[i] << 
+             // "\t" << gen_eta[i] <<  "\t" << gen_phi[i] << "\t" << gen_index[i] << "\t" << gen_mother0[i] << "\t" << gen_mother1[i] << endl ;
+    
     }
 
     edm::Handle< edm::View<reco::GenJet> > genJets;
