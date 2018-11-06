@@ -593,13 +593,16 @@ int main(int argc, char* argv[]){
 
       TLorentzVector top, antitop;
       TLorentzVector LEPfromTOP, LEPfromANTITOP;
+      TLorentzVector NufromTOP, NufromANTITOP;
       TVector3 beta_top , beta_antitop;
       if (name.Contains("tt", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
         for (int i=0; i<nGen; i++) {
           if (gen_PID[i]==6 && gen_status[i]>30) top.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==-11 || gen_PID[i]==-13) LEPfromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+          else if (gen_PID[i]==12 || gen_PID[i]==14)   NufromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==-6 && gen_status[i]>30) antitop.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==11 || gen_PID[i]==13)   LEPfromANTITOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+          else if (gen_PID[i]==-12 || gen_PID[i]==-14) NufromANTITOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           beta_top = top.BoostVector() ;
           beta_antitop = antitop.BoostVector() ;
         }
