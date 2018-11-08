@@ -31,6 +31,8 @@ using namespace std;
 void FillHist1D(const TString& histName, const Double_t& value, const double& weight);
 void FillHist2D(const TString& histName, const Double_t& value1, const Double_t& value2, const double& weight);
 void setPars(const string& parFile);
+void MT2(const TLorentzVector& P1, const TLorentzVector& P2, TLorentzVector& K);
+double MT(const TLorentzVector& vis, const TLorentzVector& met);
 void setWeight(const string& parFile);
 bool sortJetPt(const pair<int, float>& jet1, const pair<int, float>& jet2){ return jet1.second > jet2.second; }
 bool newBTag( const float& coin, const float& pT, const int& flavor, const bool& oldBTag, TGraphAsymmErrors& g_eff, const TString& variation );
@@ -259,6 +261,14 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
   hname = Form("costopvscosantitop");
   m_Histos2D[hname] = new TH2D(hname,hname,40,-1,1,40,-1,1);
+  hname = Form("W+TransverseMass");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,0,200);
+  hname = Form("W-TransverseMass");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,0,200);
+  hname = Form("TOPTransverseMass");
+  m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
+  hname = Form("ANTITOPTransverseMass");
+  m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
   /*int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
     TString hname = Form("%i_nJet",i);
@@ -593,19 +603,37 @@ int main(int argc, char* argv[]){
 
       TLorentzVector top, antitop;
       TLorentzVector LEPfromTOP, LEPfromANTITOP;
+      TLorentzVector BfromTOP, ANTIBfromANTITOP;
       TLorentzVector NufromTOP, NufromANTITOP;
+      TLorentzVector TOTALMET;
+      TLorentzVector TOPLEG, ANTITOPLEG;
       TVector3 beta_top , beta_antitop;
       if (name.Contains("tt", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+        //cout << "\n  \t  #   \t status   \t PID   \t pt   \t mass   \t eta   \t phi   \t index   \t mother0   \t mother1 "<< endl;
         for (int i=0; i<nGen; i++) {
-          if (gen_PID[i]==6 && gen_status[i]>30) top.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+
+          if (gen_PID[i]==6 && gen_status[i]>30)       top.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==-11 || gen_PID[i]==-13) LEPfromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+          else if (gen_PID[i]==5)                      BfromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==12 || gen_PID[i]==14)   NufromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+
           else if (gen_PID[i]==-6 && gen_status[i]>30) antitop.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==11 || gen_PID[i]==13)   LEPfromANTITOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+          else if (gen_PID[i]==-5)                     ANTIBfromANTITOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==-12 || gen_PID[i]==-14) NufromANTITOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+          TOTALMET = NufromTOP + NufromANTITOP;
+          TOPLEG = LEPfromTOP+BfromTOP;
+          ANTITOPLEG = LEPfromANTITOP+ANTIBfromANTITOP;
           beta_top = top.BoostVector() ;
           beta_antitop = antitop.BoostVector() ;
+          //cout << "\t" << i <<  "\t" <<  gen_status[i] << "\t" <<  gen_PID[i] << "\t" << gen_pt[i]  << "\t" << gen_mass[i] << 
+              //"\t" << gen_eta[i] <<  "\t" << gen_phi[i] << "\t" << gen_index[i] << "\t" << gen_mother0[i] << "\t" << gen_mother1[i] << endl ;        
         }
+        //MT2(LEPfromTOP+BfromTOP,LEPfromANTITOP+ANTIBfromANTITOP,TOTALMET);
+        FillHist1D("W+TransverseMass", MT(LEPfromTOP, NufromTOP), weight);
+        FillHist1D("W-TransverseMass", MT(LEPfromANTITOP, NufromANTITOP), weight);
+        FillHist1D("TOPTransverseMass", MT(TOPLEG, NufromTOP), weight);
+        FillHist1D("ANTITOPTransverseMass", MT(ANTITOPLEG, NufromANTITOP), weight);
       } 
       double top_lep_cos, antitop_lep_cos;
       if (top.Mag()!=0 && LEPfromTOP.Mag()!=0){
@@ -1545,3 +1573,20 @@ bool newBTag( const float& coin, const float& pT, const int& flavor, const bool&
   return newBTag;
 }
 
+void MT2(const TLorentzVector& P1, const TLorentzVector& P2, TLorentzVector& K){
+  double px = K.Px();
+  double py = K.Py();
+  K.SetPxPyPzE(px,py,999,999);
+}
+
+double MT(const TLorentzVector& vis, const TLorentzVector& met){
+    double px = vis.Px() + met.Px();
+    double py = vis.Py() + met.Py();
+    double et = vis.Et() + TMath::Sqrt(met.Px()*met.Px() + met.Py()*met.Py());
+    double mt2 = et*et - (px*px + py*py);
+    if ( mt2 < 0 ) {
+      cout << " mt2 = " << mt2 << " must not be negative";
+      return 0.;
+    }
+    return TMath::Sqrt(mt2);
+}
