@@ -31,8 +31,9 @@ using namespace std;
 void FillHist1D(const TString& histName, const Double_t& value, const double& weight);
 void FillHist2D(const TString& histName, const Double_t& value1, const Double_t& value2, const double& weight);
 void setPars(const string& parFile);
-void MT2(const TLorentzVector& P1, const TLorentzVector& P2, TLorentzVector& K);
 double MT(const TLorentzVector& vis, const TLorentzVector& met);
+double MT2(const TLorentzVector& P1, const TLorentzVector& P2, const TLorentzVector& K, 
+           const double beginx = -500, const double beginy = -500,const double step = 1.);
 void setWeight(const string& parFile);
 bool sortJetPt(const pair<int, float>& jet1, const pair<int, float>& jet2){ return jet1.second > jet2.second; }
 bool newBTag( const float& coin, const float& pT, const int& flavor, const bool& oldBTag, TGraphAsymmErrors& g_eff, const TString& variation );
@@ -269,6 +270,20 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
   hname = Form("ANTITOPTransverseMass");
   m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
+  hname = Form("gentopnupx");
+  m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
+  hname = Form("gentopnupy");
+  m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
+  hname = Form("genantitopnupx");
+  m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
+  hname = Form("genantitopnupy");
+  m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
+  hname = Form("MT2");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
+  hname = Form("gen_MT2");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
+  hname = Form("genMT2VSgridMT");
+  m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
   /*int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
     TString hname = Form("%i_nJet",i);
@@ -595,12 +610,10 @@ int main(int argc, char* argv[]){
 
   for (Long64_t n=0; n<nEntries; n++) {
     T->GetEntry(n);
-
     TLorentzVector lep0, lep1;
     weight = weight0;
 
     if (isMC) {
-
       TLorentzVector top, antitop;
       TLorentzVector LEPfromTOP, LEPfromANTITOP;
       TLorentzVector BfromTOP, ANTIBfromANTITOP;
@@ -611,7 +624,6 @@ int main(int argc, char* argv[]){
       if (name.Contains("tt", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
         //cout << "\n  \t  #   \t status   \t PID   \t pt   \t mass   \t eta   \t phi   \t index   \t mother0   \t mother1 "<< endl;
         for (int i=0; i<nGen; i++) {
-
           if (gen_PID[i]==6 && gen_status[i]>30)       top.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==-11 || gen_PID[i]==-13) LEPfromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
           else if (gen_PID[i]==5)                      BfromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
@@ -629,24 +641,34 @@ int main(int argc, char* argv[]){
           //cout << "\t" << i <<  "\t" <<  gen_status[i] << "\t" <<  gen_PID[i] << "\t" << gen_pt[i]  << "\t" << gen_mass[i] << 
               //"\t" << gen_eta[i] <<  "\t" << gen_phi[i] << "\t" << gen_index[i] << "\t" << gen_mother0[i] << "\t" << gen_mother1[i] << endl ;        
         }
-        //MT2(LEPfromTOP+BfromTOP,LEPfromANTITOP+ANTIBfromANTITOP,TOTALMET);
-        FillHist1D("W+TransverseMass", MT(LEPfromTOP, NufromTOP), weight);
-        FillHist1D("W-TransverseMass", MT(LEPfromANTITOP, NufromANTITOP), weight);
-        FillHist1D("TOPTransverseMass", MT(TOPLEG, NufromTOP), weight);
-        FillHist1D("ANTITOPTransverseMass", MT(ANTITOPLEG, NufromANTITOP), weight);
       } 
       double top_lep_cos, antitop_lep_cos;
       if (top.Mag()!=0 && LEPfromTOP.Mag()!=0){
+        FillHist1D("W+TransverseMass", MT(LEPfromTOP, NufromTOP), weight);
+        FillHist1D("TOPTransverseMass", MT(TOPLEG, NufromTOP), weight);
         LEPfromTOP.Boost(-beta_top);
         top_lep_cos =  LEPfromTOP.Vect().Unit().Dot(-beta_top.Unit());
+        FillHist1D("costoplep", top_lep_cos, weight);
       }
       if (antitop.Mag()!=0 && LEPfromANTITOP.Mag()!=0){
+        FillHist1D("W-TransverseMass", MT(LEPfromANTITOP, NufromANTITOP), weight);
+        FillHist1D("ANTITOPTransverseMass", MT(ANTITOPLEG, NufromANTITOP), weight);
         LEPfromANTITOP.Boost(-beta_antitop);
         antitop_lep_cos =  LEPfromANTITOP.Vect().Unit().Dot(-beta_antitop.Unit());
+        FillHist1D("cosantitoplep", antitop_lep_cos, weight);
       }
-      FillHist1D("costoplep", top_lep_cos, weight);
-      FillHist1D("cosantitoplep", antitop_lep_cos, weight);
-      FillHist2D("costopvscosantitop", top_lep_cos, antitop_lep_cos, 1.);
+      if (top.Mag()!=0 && LEPfromTOP.Mag()!=0 && antitop.Mag()!=0 && LEPfromANTITOP.Mag()!=0 ){
+        FillHist1D("gentopnupx", NufromTOP.Px(), 1.);
+        FillHist1D("gentopnupy", NufromTOP.Py(), 1.);
+        FillHist1D("genantitopnupx", NufromANTITOP.Px(), 1.);
+        FillHist1D("genantitopnupy", NufromANTITOP.Py(), 1.);
+        FillHist2D("costopvscosantitop", top_lep_cos, antitop_lep_cos, 1.);
+        FillHist1D("MT2", MT2(TOPLEG,ANTITOPLEG,TOTALMET), 1.);
+        double toplegMT = MT(TOPLEG, NufromTOP);
+        double antitoplegMT = MT(ANTITOPLEG, NufromANTITOP);
+        FillHist1D("gen_MT2", TMath::Max(toplegMT,antitoplegMT), 1.);
+        FillHist2D("genMT2VSgridMT", TMath::Max(toplegMT,antitoplegMT),MT2(TOPLEG,ANTITOPLEG,TOTALMET), 1.);
+      }
       /*weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
 
       //topPt, pdf, and q2 reweighting - only affect ttbar
@@ -1573,20 +1595,38 @@ bool newBTag( const float& coin, const float& pT, const int& flavor, const bool&
   return newBTag;
 }
 
-void MT2(const TLorentzVector& P1, const TLorentzVector& P2, TLorentzVector& K){
-  double px = K.Px();
-  double py = K.Py();
-  K.SetPxPyPzE(px,py,999,999);
+double MT2(const TLorentzVector& P1, const TLorentzVector& P2, const TLorentzVector& K, 
+           const double beginx, const double beginy, const double step){
+  int nsteps = int ((-1*beginx-beginx)/step);
+  TLorentzVector K1, K2;
+  double Kz1(0.);
+  double setMin = 1000.0;
+  for (int ix=0; ix<nsteps; ix++){
+    double Kx1 = beginx;
+    Kx1 += double(ix*step);
+    for (int iy=0; iy<nsteps+1; iy++){
+      double Ky1 = beginy;
+      Ky1 += double(iy*step);
+      K1.SetPxPyPzE(Kx1,Ky1,Kz1,TMath::Sqrt(Kx1*Kx1+Ky1*Ky1));
+      K2 = K - K1;
+      double MT1 = MT (P1,K1);
+      if(MT1<=0.) continue ;
+      double MT2 = MT (P2,K2);
+      if(MT2<=0.) continue ;
+      if(setMin>TMath::Max(MT1,MT2)) setMin = TMath::Max(MT1,MT2);    
+    }
+  }
+  return setMin;
 }
 
 double MT(const TLorentzVector& vis, const TLorentzVector& met){
     double px = vis.Px() + met.Px();
     double py = vis.Py() + met.Py();
-    double et = vis.Et() + TMath::Sqrt(met.Px()*met.Px() + met.Py()*met.Py());
-    double mt2 = et*et - (px*px + py*py);
-    if ( mt2 < 0 ) {
-      cout << " mt2 = " << mt2 << " must not be negative";
+    double et = vis.Et() + met.Et();
+    double mtsq = et*et - (px*px + py*py);
+    if ( mtsq < 0 ) {
+      //cout << " mtsq = " << mtsq << " must not be negative";
       return 0.;
     }
-    return TMath::Sqrt(mt2);
+    return TMath::Sqrt(mtsq);
 }
