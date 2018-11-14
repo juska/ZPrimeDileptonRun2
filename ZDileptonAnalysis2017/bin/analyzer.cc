@@ -32,8 +32,8 @@ void FillHist1D(const TString& histName, const Double_t& value, const double& we
 void FillHist2D(const TString& histName, const Double_t& value1, const Double_t& value2, const double& weight);
 void setPars(const string& parFile);
 double MT(const TLorentzVector& vis, const TLorentzVector& met);
-double MT2(const TLorentzVector& P1, const TLorentzVector& P2, const TLorentzVector& K, 
-           const double beginx = -500, const double beginy = -500,const double step = 1.);
+double MT2grid(const TLorentzVector& P1, const TLorentzVector& P2, const TLorentzVector& K, TLorentzVector& K1f, TLorentzVector& K2f);
+
 void setWeight(const string& parFile);
 bool sortJetPt(const pair<int, float>& jet1, const pair<int, float>& jet2){ return jet1.second > jet2.second; }
 bool newBTag( const float& coin, const float& pT, const int& flavor, const bool& oldBTag, TGraphAsymmErrors& g_eff, const TString& variation );
@@ -63,6 +63,10 @@ const float MUONMASS = 0.10566;
 const float ELEMASS = 0.;
 const float btagWP_L = 0.5426;
 const float btagWP_M = 0.8484;
+const double beginx = -500;
+const double beginy = -500;
+const double step = .5;
+const double Mtop = 173.34;
 
 int main(int argc, char* argv[]){
 
@@ -278,12 +282,18 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
   hname = Form("genantitopnupy");
   m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
-  hname = Form("MT2");
+  hname = Form("MT2grid");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-  hname = Form("gen_MT2");
+  hname = Form("gen_MT2grid");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-  hname = Form("genMT2VSgridMT");
+  hname = Form("genMT2gridVSMT");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
+  hname = Form("(MT2gridNUpx-NUpx)/NUpx");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(MT2gridNUpy-NUpy)/NUpy");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("MT2gridNUpt/NUpt");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
   /*int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
     TString hname = Form("%i_nJet",i);
@@ -663,11 +673,27 @@ int main(int argc, char* argv[]){
         FillHist1D("genantitopnupx", NufromANTITOP.Px(), 1.);
         FillHist1D("genantitopnupy", NufromANTITOP.Py(), 1.);
         FillHist2D("costopvscosantitop", top_lep_cos, antitop_lep_cos, 1.);
-        FillHist1D("MT2", MT2(TOPLEG,ANTITOPLEG,TOTALMET), 1.);
+        TLorentzVector Nu1, Nu2;
+        double MT2gridval = MT2grid(TOPLEG,ANTITOPLEG,TOTALMET,Nu1,Nu2);
+        FillHist1D("MT2grid",MT2gridval, 1.);
         double toplegMT = MT(TOPLEG, NufromTOP);
         double antitoplegMT = MT(ANTITOPLEG, NufromANTITOP);
-        FillHist1D("gen_MT2", TMath::Max(toplegMT,antitoplegMT), 1.);
-        FillHist2D("genMT2VSgridMT", TMath::Max(toplegMT,antitoplegMT),MT2(TOPLEG,ANTITOPLEG,TOTALMET), 1.);
+        FillHist1D("gen_MT2grid", TMath::Max(toplegMT,antitoplegMT), 1.);
+        FillHist2D("genMT2gridVSMT", TMath::Max(toplegMT,antitoplegMT),MT2gridval, 1.);
+
+        double deltakx, deltaky, deltakt;
+        deltakx = fabs(Nu1.Px()-NufromTOP.Px()) < fabs(Nu2.Px()-NufromTOP.Px()) ?  Nu1.Px()-NufromTOP.Px() : Nu2.Px()-NufromTOP.Px();
+        deltaky = fabs(Nu1.Py()-NufromTOP.Py()) < fabs(Nu2.Py()-NufromTOP.Py()) ?  Nu1.Py()-NufromTOP.Py() : Nu2.Py()-NufromTOP.Py();
+        deltakt = fabs(Nu1.Pt()-NufromTOP.Pt()) < fabs(Nu2.Pt()-NufromTOP.Pt()) ?  Nu1.Pt()-NufromTOP.Pt() : Nu2.Pt()-NufromTOP.Pt();
+
+        //cout << Nu1.Px() << "\t" << Nu2.Px() << "\t" << NufromTOP.Px() << "\t" << NufromANTITOP.Px() << endl;
+        //cout << "delta is " << deltakx << endl;
+
+        FillHist1D("(MT2gridNUpx-NUpx)/NUpx", deltakx/fabs(NufromTOP.Px()), 1.);
+        FillHist1D("(MT2gridNUpy-NUpy)/NUpy", deltaky/fabs(NufromTOP.Py()), 1.);
+        FillHist1D("MT2gridNUpt/NUpt", (deltakt+NufromTOP.Pt())/NufromTOP.Pt(), 1.);
+
+
       }
       /*weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
 
@@ -1595,25 +1621,25 @@ bool newBTag( const float& coin, const float& pT, const int& flavor, const bool&
   return newBTag;
 }
 
-double MT2(const TLorentzVector& P1, const TLorentzVector& P2, const TLorentzVector& K, 
-           const double beginx, const double beginy, const double step){
+double MT2grid(const TLorentzVector& P1, const TLorentzVector& P2, const TLorentzVector& K, TLorentzVector& K1f, TLorentzVector& K2f){
   int nsteps = int ((-1*beginx-beginx)/step);
   TLorentzVector K1, K2;
-  double Kz1(0.);
   double setMin = 1000.0;
   for (int ix=0; ix<nsteps; ix++){
-    double Kx1 = beginx;
-    Kx1 += double(ix*step);
+    double Kx1 =  beginx+ double(ix*step);
     for (int iy=0; iy<nsteps+1; iy++){
-      double Ky1 = beginy;
-      Ky1 += double(iy*step);
-      K1.SetPxPyPzE(Kx1,Ky1,Kz1,TMath::Sqrt(Kx1*Kx1+Ky1*Ky1));
+      double Ky1 =  beginy+ double(iy*step);
+      K1.SetPxPyPzE(Kx1,Ky1,0.,TMath::Sqrt(Kx1*Kx1+Ky1*Ky1));
       K2 = K - K1;
       double MT1 = MT (P1,K1);
-      if(MT1<=0.) continue ;
+      if(MT1<=0. && MT1>Mtop ) continue ;
       double MT2 = MT (P2,K2);
-      if(MT2<=0.) continue ;
-      if(setMin>TMath::Max(MT1,MT2)) setMin = TMath::Max(MT1,MT2);    
+      if(MT2<=0. && MT2>Mtop) continue ;
+      if(setMin>TMath::Max(MT1,MT2)){
+        setMin = TMath::Max(MT1,MT2);  
+        K1f = K1;
+        K2f = K2;
+      }  
     }
   }
   return setMin;
