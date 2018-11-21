@@ -25,6 +25,7 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
+#include "PhysicsTools/Heppy/interface/Davismt2.h"
 
 using namespace std;
 
@@ -65,7 +66,7 @@ const float btagWP_L = 0.5426;
 const float btagWP_M = 0.8484;
 const double beginx = -500;
 const double beginy = -500;
-const double step = .5;
+const double step = 1;
 const double Mtop = 173.34;
 
 int main(int argc, char* argv[]){
@@ -284,9 +285,13 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
   hname = Form("MT2grid");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
+  hname = Form("MT2Bisect");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("gen_MT2grid");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("genMT2gridVSMT");
+  m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
+  hname = Form("genMT2BisectVSMT");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
   hname = Form("(MT2gridNUpx-NUpx)/NUpx");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
@@ -693,6 +698,18 @@ int main(int argc, char* argv[]){
         FillHist1D("(MT2gridNUpy-NUpy)/NUpy", deltaky/fabs(NufromTOP.Py()), 1.);
         FillHist1D("MT2gridNUpt/NUpt", (deltakt+NufromTOP.Pt())/NufromTOP.Pt(), 1.);
 
+        double p_TOPLEG[3] = { TOPLEG.M(), TOPLEG.Px(), TOPLEG.Py() };
+        double p_ANTITOPLEG[3] = { ANTITOPLEG.M(), ANTITOPLEG.Px(), ANTITOPLEG.Py() };
+        double p_TOTALMET[3] = { 0, TOTALMET.Px(), TOTALMET.Py() };
+        double mn    = 0.;
+        heppy::Davismt2 davismt2_;
+        davismt2_.set_momenta(p_TOPLEG,p_ANTITOPLEG,p_TOTALMET);
+        davismt2_.set_mn(mn);
+        //davismt2_.print();
+        //cout << endl << " mt2 = " << davismt2_.get_mt2() << endl;
+        double MT2bisectval = davismt2_.get_mt2();
+        FillHist1D("MT2Bisect",MT2bisectval, 1.);
+        FillHist2D("genMT2BisectVSMT", TMath::Max(toplegMT,antitoplegMT),MT2bisectval, 1.);
 
       }
       /*weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
@@ -1402,6 +1419,8 @@ int main(int argc, char* argv[]){
   outFile->Write();
   delete outFile;
   outFile = 0;
+  
+
 }
 
 void FillHist1D(const TString& histName, const Double_t& value, const double& weight) {
