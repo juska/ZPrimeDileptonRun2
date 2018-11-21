@@ -289,9 +289,9 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("gen_MT2grid");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-  hname = Form("genMT2gridVSMT");
+  hname = Form("MT2gridVSgenMT");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
-  hname = Form("genMT2BisectVSMT");
+  hname = Form("MT2BisectVSgenMT");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
   hname = Form("(MT2gridNUpx-NUpx)/NUpx");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
@@ -684,7 +684,7 @@ int main(int argc, char* argv[]){
         double toplegMT = MT(TOPLEG, NufromTOP);
         double antitoplegMT = MT(ANTITOPLEG, NufromANTITOP);
         FillHist1D("gen_MT2grid", TMath::Max(toplegMT,antitoplegMT), 1.);
-        FillHist2D("genMT2gridVSMT", TMath::Max(toplegMT,antitoplegMT),MT2gridval, 1.);
+        FillHist2D("MT2gridVSgenMT", TMath::Max(toplegMT,antitoplegMT),MT2gridval, 1.);
 
         double deltakx, deltaky, deltakt;
         deltakx = fabs(Nu1.Px()-NufromTOP.Px()) < fabs(Nu2.Px()-NufromTOP.Px()) ?  Nu1.Px()-NufromTOP.Px() : Nu2.Px()-NufromTOP.Px();
@@ -709,7 +709,7 @@ int main(int argc, char* argv[]){
         //cout << endl << " mt2 = " << davismt2_.get_mt2() << endl;
         double MT2bisectval = davismt2_.get_mt2();
         FillHist1D("MT2Bisect",MT2bisectval, 1.);
-        FillHist2D("genMT2BisectVSMT", TMath::Max(toplegMT,antitoplegMT),MT2bisectval, 1.);
+        FillHist2D("MT2BisectVSgenMT", TMath::Max(toplegMT,antitoplegMT),MT2bisectval, 1.);
 
       }
       /*weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
