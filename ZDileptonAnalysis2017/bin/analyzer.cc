@@ -261,43 +261,45 @@ int main(int argc, char* argv[]){
 
   //Histograms//
   TString hname;
-  hname = Form("costoplep");
+  hname = Form("cosTheta+");
   m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
-  hname = Form("cosantitoplep");
+  hname = Form("cosTheta-");
   m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
-  hname = Form("costopvscosantitop");
+  hname = Form("cosTheta+_vs_cosTheta-");
   m_Histos2D[hname] = new TH2D(hname,hname,40,-1,1,40,-1,1);
-  hname = Form("W+TransverseMass");
+  hname = Form("MT_W+");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,200);
-  hname = Form("W-TransverseMass");
+  hname = Form("MT_W-");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,200);
-  hname = Form("TOPTransverseMass");
+  hname = Form("MT_top");
   m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
-  hname = Form("ANTITOPTransverseMass");
+  hname = Form("MT_antitop");
   m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
-  hname = Form("gentopnupx");
+  hname = Form("px_NUfromTOP");
   m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
-  hname = Form("gentopnupy");
+  hname = Form("py_NUfromTOP");
   m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
-  hname = Form("genantitopnupx");
+  hname = Form("px_NUfromANTITOP");
   m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
-  hname = Form("genantitopnupy");
+  hname = Form("py_NUfromANTITOP");
   m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
   hname = Form("MT2grid");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-  hname = Form("MT2Bisect");
+  hname = Form("MT2bisect");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-  hname = Form("gen_MT2grid");
+  hname = Form("MT2gen");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-  hname = Form("MT2gridVSgenMT");
+  hname = Form("MT2grid_vs_MT2gen");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
-  hname = Form("MT2BisectVSgenMT");
+  hname = Form("MT2bisect_vs_MT2gen");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
-  hname = Form("(MT2gridNUpx-NUpx)/NUpx");
+  hname = Form("MT2bisect_vs_MT2grid");
+  m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
+  hname = Form("(grid-gen)/gen_pxNU1");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(MT2gridNUpy-NUpy)/NUpy");
+  hname = Form("(grid-gen)/gen_pyNU1");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("MT2gridNUpt/NUpt");
+  hname = Form("grid/gen_ptNU1");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
   /*int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
@@ -629,88 +631,89 @@ int main(int argc, char* argv[]){
     weight = weight0;
 
     if (isMC) {
-      TLorentzVector top, antitop;
-      TLorentzVector LEPfromTOP, LEPfromANTITOP;
-      TLorentzVector BfromTOP, ANTIBfromANTITOP;
-      TLorentzVector NufromTOP, NufromANTITOP;
-      TLorentzVector TOTALMET;
-      TLorentzVector TOPLEG, ANTITOPLEG;
-      TVector3 beta_top , beta_antitop;
+      TLorentzVector TOP,  LEPfromTOP,  BfromTOP,  NUfromTOP ;                  // top and it's decay particles
+      TLorentzVector ANTITOP,  LEPfromANTITOP,  BfromANTITOP, NUfromANTITOP ;   // antitop and it's decay particles
+      TLorentzVector NUtotal;                                                   // nu+nubar system
+      TLorentzVector TOPvis, ANTITOPvis;                                        // visible decay products from (anti)top
+      TVector3 betaTOP, betaANTITOP;
       if (name.Contains("tt", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
-        //cout << "\n  \t  #   \t status   \t PID   \t pt   \t mass   \t eta   \t phi   \t index   \t mother0   \t mother1 "<< endl;
         for (int i=0; i<nGen; i++) {
-          if (gen_PID[i]==6 && gen_status[i]>30)       top.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
-          else if (gen_PID[i]==-11 || gen_PID[i]==-13) LEPfromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
-          else if (gen_PID[i]==5)                      BfromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
-          else if (gen_PID[i]==12 || gen_PID[i]==14)   NufromTOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+          TLorentzVector TLV ;
+          TLV.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
+          if (gen_PID[i]==6 && gen_status[i]>30)       TOP            = TLV;
+          else if (gen_PID[i]==-11 || gen_PID[i]==-13) LEPfromTOP     = TLV;
+          else if (gen_PID[i]==5)                      BfromTOP       = TLV;
+          else if (gen_PID[i]==12 || gen_PID[i]==14)   NUfromTOP      = TLV;
 
-          else if (gen_PID[i]==-6 && gen_status[i]>30) antitop.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
-          else if (gen_PID[i]==11 || gen_PID[i]==13)   LEPfromANTITOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
-          else if (gen_PID[i]==-5)                     ANTIBfromANTITOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
-          else if (gen_PID[i]==-12 || gen_PID[i]==-14) NufromANTITOP.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
-          TOTALMET = NufromTOP + NufromANTITOP;
-          TOPLEG = LEPfromTOP+BfromTOP;
-          ANTITOPLEG = LEPfromANTITOP+ANTIBfromANTITOP;
-          beta_top = top.BoostVector() ;
-          beta_antitop = antitop.BoostVector() ;
-          //cout << "\t" << i <<  "\t" <<  gen_status[i] << "\t" <<  gen_PID[i] << "\t" << gen_pt[i]  << "\t" << gen_mass[i] << 
-              //"\t" << gen_eta[i] <<  "\t" << gen_phi[i] << "\t" << gen_index[i] << "\t" << gen_mother0[i] << "\t" << gen_mother1[i] << endl ;        
+          else if (gen_PID[i]==-6 && gen_status[i]>30) ANTITOP        = TLV;
+          else if (gen_PID[i]==11 || gen_PID[i]==13)   LEPfromANTITOP = TLV;
+          else if (gen_PID[i]==-5)                     BfromANTITOP   = TLV;
+          else if (gen_PID[i]==-12 || gen_PID[i]==-14) NUfromANTITOP  = TLV;
         }
-      } 
-      double top_lep_cos, antitop_lep_cos;
-      if (top.Mag()!=0 && LEPfromTOP.Mag()!=0){
-        FillHist1D("W+TransverseMass", MT(LEPfromTOP, NufromTOP), weight);
-        FillHist1D("TOPTransverseMass", MT(TOPLEG, NufromTOP), weight);
-        LEPfromTOP.Boost(-beta_top);
-        top_lep_cos =  LEPfromTOP.Vect().Unit().Dot(-beta_top.Unit());
-        FillHist1D("costoplep", top_lep_cos, weight);
-      }
-      if (antitop.Mag()!=0 && LEPfromANTITOP.Mag()!=0){
-        FillHist1D("W-TransverseMass", MT(LEPfromANTITOP, NufromANTITOP), weight);
-        FillHist1D("ANTITOPTransverseMass", MT(ANTITOPLEG, NufromANTITOP), weight);
-        LEPfromANTITOP.Boost(-beta_antitop);
-        antitop_lep_cos =  LEPfromANTITOP.Vect().Unit().Dot(-beta_antitop.Unit());
-        FillHist1D("cosantitoplep", antitop_lep_cos, weight);
-      }
-      if (top.Mag()!=0 && LEPfromTOP.Mag()!=0 && antitop.Mag()!=0 && LEPfromANTITOP.Mag()!=0 ){
-        FillHist1D("gentopnupx", NufromTOP.Px(), 1.);
-        FillHist1D("gentopnupy", NufromTOP.Py(), 1.);
-        FillHist1D("genantitopnupx", NufromANTITOP.Px(), 1.);
-        FillHist1D("genantitopnupy", NufromANTITOP.Py(), 1.);
-        FillHist2D("costopvscosantitop", top_lep_cos, antitop_lep_cos, 1.);
-        TLorentzVector Nu1, Nu2;
-        double MT2gridval = MT2grid(TOPLEG,ANTITOPLEG,TOTALMET,Nu1,Nu2);
-        FillHist1D("MT2grid",MT2gridval, 1.);
-        double toplegMT = MT(TOPLEG, NufromTOP);
-        double antitoplegMT = MT(ANTITOPLEG, NufromANTITOP);
-        FillHist1D("gen_MT2grid", TMath::Max(toplegMT,antitoplegMT), 1.);
-        FillHist2D("MT2gridVSgenMT", TMath::Max(toplegMT,antitoplegMT),MT2gridval, 1.);
+        double lepCosTOP, lepCosANTITOP;
+        // ... consider only events with both tops decaying leptonically ...
+        if (TOP.Mag()!=0 && LEPfromTOP.Mag()!=0 && ANTITOP.Mag()!=0 && LEPfromANTITOP.Mag()!=0 ){ 
+          betaTOP     =     TOP.BoostVector() ;  // Lorentz boost
+          betaANTITOP = ANTITOP.BoostVector() ;  // Lorentz boost
 
-        double deltakx, deltaky, deltakt;
-        deltakx = fabs(Nu1.Px()-NufromTOP.Px()) < fabs(Nu2.Px()-NufromTOP.Px()) ?  Nu1.Px()-NufromTOP.Px() : Nu2.Px()-NufromTOP.Px();
-        deltaky = fabs(Nu1.Py()-NufromTOP.Py()) < fabs(Nu2.Py()-NufromTOP.Py()) ?  Nu1.Py()-NufromTOP.Py() : Nu2.Py()-NufromTOP.Py();
-        deltakt = fabs(Nu1.Pt()-NufromTOP.Pt()) < fabs(Nu2.Pt()-NufromTOP.Pt()) ?  Nu1.Pt()-NufromTOP.Pt() : Nu2.Pt()-NufromTOP.Pt();
+          TOPvis     = LEPfromTOP    + BfromTOP;      // visible dacay products of top
+          ANTITOPvis = LEPfromANTITOP+ BfromANTITOP;  // visible dacay products of antitop
 
-        //cout << Nu1.Px() << "\t" << Nu2.Px() << "\t" << NufromTOP.Px() << "\t" << NufromANTITOP.Px() << endl;
-        //cout << "delta is " << deltakx << endl;
+          NUtotal = NUfromTOP + NUfromANTITOP;         // system of 2 neutrinos
 
-        FillHist1D("(MT2gridNUpx-NUpx)/NUpx", deltakx/fabs(NufromTOP.Px()), 1.);
-        FillHist1D("(MT2gridNUpy-NUpy)/NUpy", deltaky/fabs(NufromTOP.Py()), 1.);
-        FillHist1D("MT2gridNUpt/NUpt", (deltakt+NufromTOP.Pt())/NufromTOP.Pt(), 1.);
+          double MT_TOP     = MT(TOPvis,NUfromTOP);               
+          double MT_ANTITOP = MT(ANTITOPvis,NUfromANTITOP);
 
-        double p_TOPLEG[3] = { TOPLEG.M(), TOPLEG.Px(), TOPLEG.Py() };
-        double p_ANTITOPLEG[3] = { ANTITOPLEG.M(), ANTITOPLEG.Px(), ANTITOPLEG.Py() };
-        double p_TOTALMET[3] = { 0, TOTALMET.Px(), TOTALMET.Py() };
-        double mn    = 0.;
-        heppy::Davismt2 davismt2_;
-        davismt2_.set_momenta(p_TOPLEG,p_ANTITOPLEG,p_TOTALMET);
-        davismt2_.set_mn(mn);
-        //davismt2_.print();
-        //cout << endl << " mt2 = " << davismt2_.get_mt2() << endl;
-        double MT2bisectval = davismt2_.get_mt2();
-        FillHist1D("MT2Bisect",MT2bisectval, 1.);
-        FillHist2D("MT2BisectVSgenMT", TMath::Max(toplegMT,antitoplegMT),MT2bisectval, 1.);
+          FillHist1D("MT_W+", MT(LEPfromTOP, NUfromTOP), weight);
+          FillHist1D("MT_W-", MT(LEPfromANTITOP, NUfromANTITOP), weight);
 
+          LEPfromTOP.Boost(-betaTOP);
+          lepCosTOP =  LEPfromTOP.Vect().Unit().Dot(-betaTOP.Unit());
+          LEPfromANTITOP.Boost(-betaANTITOP);
+          lepCosANTITOP =  LEPfromANTITOP.Vect().Unit().Dot(-betaANTITOP.Unit());
+
+          FillHist1D("px_NUfromTOP",     NUfromTOP.Px(),     weight);  
+          FillHist1D("py_NUfromTOP",     NUfromTOP.Py(),     weight);
+          FillHist1D("MT_top", MT_TOP, weight);
+          FillHist1D("cosTheta+", lepCosTOP, weight);
+
+          FillHist1D("px_NUfromANTITOP", NUfromANTITOP.Px(), weight);
+          FillHist1D("py_NUfromANTITOP", NUfromANTITOP.Py(), weight);
+          FillHist1D("MT_antitop", MT_ANTITOP, weight);
+          FillHist1D("cosTheta-", lepCosANTITOP, weight);
+
+          FillHist2D("cosTheta+_vs_cosTheta-", lepCosTOP, lepCosANTITOP, weight);
+          // ... Calculations for MT2 with grid method ...
+          TLorentzVector NU1, NU2;
+          double MT2gridval = MT2grid(TOPvis,ANTITOPvis,NUtotal,NU1,NU2);
+          FillHist1D("MT2grid",MT2gridval, weight);
+          FillHist1D("MT2gen", TMath::Max(MT_TOP, MT_ANTITOP), weight);
+          FillHist2D("MT2grid_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),MT2gridval, weight);
+
+          double deltakx, deltaky;
+          deltakx = NU1.Px()-NUfromTOP.Px() ;
+          deltaky = NU1.Py()-NUfromTOP.Py() ;
+
+          FillHist1D("(grid-gen)/gen_pxNU1", deltakx/fabs(NUfromTOP.Px()), weight);
+          FillHist1D("(grid-gen)/gen_pyNU1", deltaky/fabs(NUfromTOP.Py()), weight);
+          FillHist1D("grid/gen_ptNU1", NU1.Pt()/NUfromTOP.Pt(), weight);
+
+          // ... Calculations for MT2 with bisect method ...
+          double p_TOPvis[3]     = {     TOPvis.M(),     TOPvis.Px(),     TOPvis.Py() };
+          double p_ANTITOPvis[3] = { ANTITOPvis.M(), ANTITOPvis.Px(), ANTITOPvis.Py() };
+          double p_NUtotal[3]    = {             0.,    NUtotal.Px(),    NUtotal.Py() };
+          double mn    = 0.;
+          heppy::Davismt2 davismt2_;
+          davismt2_.set_momenta(p_TOPvis,p_ANTITOPvis,p_NUtotal);
+          davismt2_.set_mn(mn);
+          //davismt2_.print();
+          //cout << endl << " mt2 = " << davismt2_.get_mt2() << endl;
+          double MT2bisect = davismt2_.get_mt2();
+          FillHist1D("MT2bisect",MT2bisect, weight); // was "MT2Bisect"
+          FillHist2D("MT2bisect_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),MT2bisect, weight);
+
+          FillHist2D("MT2bisect_vs_MT2grid",  MT2gridval, MT2bisect, weight);
+        }
       }
       /*weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
 
