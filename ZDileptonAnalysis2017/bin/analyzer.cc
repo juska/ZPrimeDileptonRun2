@@ -26,6 +26,7 @@
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "PhysicsTools/Heppy/interface/Davismt2.h"
+#include "MT2MAOS/oxbridgekinetics/src/Mt2/Basic_Mt2_332_Calculator.h"
 
 using namespace std;
 
@@ -293,6 +294,8 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("MT2bisect");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
+  hname = Form("MT2simplex");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("MT2gen");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("MT2grid_vs_MT2gen");
@@ -303,6 +306,9 @@ int main(int argc, char* argv[]){
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
   hname = Form("MT2bisect_vs_MT2grid");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
+  hname = Form("MT2simplex_vs_MT2gen");
+  m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
+
 
   hname = "pxNU1";
   m_Histos1D[hname] = new TH1D(hname,hname,300,-300,300);
@@ -338,6 +344,13 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
   hname = Form("constraint_grid/gen_ptNU1");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+
+
+  hname = Form("(simplex-gen)/gen_pxNU1");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex-gen)/gen_pyNU1");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+
   /*int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
     TString hname = Form("%i_nJet",i);
@@ -748,13 +761,6 @@ int main(int argc, char* argv[]){
           FillHist1D("(grid-gen)/gen_pyNU1", deltaky/fabs(NUfromTOP.Py()), weight);
           FillHist1D("grid/gen_ptNU1", NU1.Pt()/NUfromTOP.Pt(), weight);
 
-          LEPfromTOP.Boost(-betaTOP);
-          lepCosTOP =  LEPfromTOP.Vect().Unit().Dot(-betaTOP.Unit());
-          LEPfromANTITOP.Boost(-betaANTITOP);
-          lepCosANTITOP =  LEPfromANTITOP.Vect().Unit().Dot(-betaANTITOP.Unit());
-          FillHist1D("cosTheta+", lepCosTOP, weight);
-          FillHist1D("cosTheta-", lepCosANTITOP, weight);
-          FillHist2D("cosTheta+_vs_cosTheta-", lepCosTOP, lepCosANTITOP, weight);
           // ... Calculations for MT2 with bisect method ...
           double p_TOPvis[3]     = {     TOPvis.M(),     TOPvis.Px(),     TOPvis.Py() };
           double p_ANTITOPvis[3] = { ANTITOPvis.M(), ANTITOPvis.Px(), ANTITOPvis.Py() };
@@ -770,6 +776,33 @@ int main(int argc, char* argv[]){
           FillHist2D("MT2bisect_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),MT2bisect, weight);
 
           FillHist2D("MT2bisect_vs_MT2grid",  MT2gridval, MT2bisect, weight);
+          // ... Calculations for MT2 with simplex method ...
+          Mt2::Basic_Mt2_332_Calculator mt2Calculator;
+          Mt2::LorentzTransverseVector TOPvis_TVec(Mt2::TwoVector(TOPvis.Px(), TOPvis.Py()), TOPvis.M());
+          Mt2::LorentzTransverseVector ANTITOPvis_TVec(Mt2::TwoVector(ANTITOPvis.Px(), ANTITOPvis.Py()), ANTITOPvis.M());
+          Mt2::TwoVector NUtotal_pT(NUtotal.Px(), NUtotal.Py());
+          double NU1_simplex[2];
+          double NU2_simplex[2];
+
+          double basic_MT2_332 = mt2Calculator.mt2_332(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0);
+          mt2Calculator.mt2_332_Sq(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0,NU1_simplex,NU2_simplex);
+
+          double deltakx_simplexgen, deltaky_simplexgen;
+          deltakx_simplexgen = NU1_simplex[0]-NUfromTOP.Px() ;
+          deltaky_simplexgen = NU1_simplex[1]-NUfromTOP.Py() ;
+
+          FillHist1D("MT2simplex",basic_MT2_332, weight); // was "MT2Bisect"
+          FillHist2D("MT2simplex_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),basic_MT2_332, weight);
+          FillHist1D("(simplex-gen)/gen_pxNU1", deltakx_simplexgen/fabs(NUfromTOP.Px()), weight);
+          FillHist1D("(simplex-gen)/gen_pyNU1", deltaky_simplexgen/fabs(NUfromTOP.Py()), weight);
+
+          LEPfromTOP.Boost(-betaTOP);
+          lepCosTOP =  LEPfromTOP.Vect().Unit().Dot(-betaTOP.Unit());
+          LEPfromANTITOP.Boost(-betaANTITOP);
+          lepCosANTITOP =  LEPfromANTITOP.Vect().Unit().Dot(-betaANTITOP.Unit());
+          FillHist1D("cosTheta+", lepCosTOP, weight);
+          FillHist1D("cosTheta-", lepCosANTITOP, weight);
+          FillHist2D("cosTheta+_vs_cosTheta-", lepCosTOP, lepCosANTITOP, weight);
         }
       }
       /*weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
