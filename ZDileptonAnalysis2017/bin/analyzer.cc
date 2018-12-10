@@ -36,6 +36,7 @@ void setPars(const string& parFile);
 double MT(const TLorentzVector& vis, const TLorentzVector& met);
 double MT2grid(const TLorentzVector& Pb1,const TLorentzVector& Pl1, const TLorentzVector& Pb2,const TLorentzVector& Pl2,
                const TLorentzVector& K, TLorentzVector& K1f, TLorentzVector& K2f);
+void kL_calculator(const TLorentzVector& Pb, const TLorentzVector& Pl, const double KT[2], double KL_roots[2]);
 
 void setWeight(const string& parFile);
 bool sortJetPt(const pair<int, float>& jet1, const pair<int, float>& jet2){ return jet1.second > jet2.second; }
@@ -144,6 +145,7 @@ int main(int argc, char* argv[]){
   cout << endl << nEntries << " Events" << endl;
   cout << "Processing " + inName << endl;
   TString name = inName( inName.Last('/')+1, inName.Last('.')-inName.Last('/')-1);
+  cout << name << endl;
   //cout << "Channel: " + channel << endl;
 
   //Reweighting and SF Files//
@@ -290,8 +292,6 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,100,-1000,1000);
   hname = Form("MT2grid");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-  hname = Form("constraint_MT2grid");
-  m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("MT2bisect");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("MT2simplex");
@@ -299,8 +299,6 @@ int main(int argc, char* argv[]){
   hname = Form("MT2gen");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = Form("MT2grid_vs_MT2gen");
-  m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
-  hname = Form("constraint_MT2grid_vs_MT2gen");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
   hname = Form("MT2bisect_vs_MT2gen");
   m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,0,400);
@@ -332,24 +330,39 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
   hname = "NU1PX-2_MT2grid";
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-  hname = Form("(grid-gen)/gen_pxNU1");
+  hname = Form("(grid-gen)over(gen_pxNU1)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(grid-gen)/gen_pyNU1");
+  hname = Form("(grid-gen)over(gen_pyNU1)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("grid/gen_ptNU1");
-  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(constraint_grid-gen)/gen_pxNU1");
-  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(constraint_grid-gen)/gen_pyNU1");
-  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("constraint_grid/gen_ptNU1");
+  hname = Form("(grid)over(gen_ptNU1)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
 
 
-  hname = Form("(simplex-gen)/gen_pxNU1");
+  hname = Form("(simplex-gen)over(gen_pxNU1)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(simplex-gen)/gen_pyNU1");
+  hname = Form("(simplex-gen)over(gen_pyNU1)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex-gen)over(gen_pzNU1_root1)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex-gen)over(gen_pzNU1_root2)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex)over(gen_ptNU1)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("Maos_kTratioVSMAOS_MT2");
+  m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,-10,10);
+
+  hname = Form("(simplex-gen)over(gen_pxNU2)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex-gen)over(gen_pyNU2)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex-gen)over(gen_pzNU2_root1)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex-gen)over(gen_pzNU2_root2)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex)over(gen_ptNU2)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("Maos_kT2ratioVSMAOS_MT2");
+  m_Histos2D[hname] = new TH2D(hname,hname,200,0,400,200,-10,10);
 
   /*int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
@@ -675,7 +688,7 @@ int main(int argc, char* argv[]){
   int sameRlepjet=0;
   time_t start = time(NULL);
 
-  for (Long64_t n=0; n<nEntries; n++) {
+  for (Long64_t n=0; n<500000; n++) {
     T->GetEntry(n);
     TLorentzVector lep0, lep1;
     weight = weight0;
@@ -737,13 +750,13 @@ int main(int argc, char* argv[]){
           FillHist1D("MT2gen", TMath::Max(MT_TOP, MT_ANTITOP), weight);
           FillHist2D("MT2grid_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),MT2gridval, weight);
 
-          if ((TOPvis+NU1).M()>= MT2gridval && (ANTITOPvis+NU2).M()>MT2gridval ){
+          /*if ((TOPvis+NU1).M()>= MT2gridval && (ANTITOPvis+NU2).M()>MT2gridval ){
             FillHist1D("constraint_MT2grid",MT2gridval, weight);
             FillHist2D("constraint_MT2grid_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),MT2gridval, weight);
             FillHist1D("(constraint_grid-gen)/gen_pxNU1", deltakx/fabs(NUfromTOP.Px()), weight);
             FillHist1D("(constraint_grid-gen)/gen_pyNU1", deltaky/fabs(NUfromTOP.Py()), weight);
             FillHist1D("constraint_grid/gen_ptNU1", NU1.Pt()/NUfromTOP.Pt(), weight);
-          }
+          }*/
 
           FillHist1D("pxNU1", NU1.Px(), weight);
           FillHist1D("pyNU1", NU1.Py(), weight);
@@ -757,9 +770,9 @@ int main(int argc, char* argv[]){
           FillHist1D("pxNU2", NU2.Px(), weight);
           FillHist1D("pyNU2", NU2.Py(), weight);
           FillHist2D("pyNU2_vs_pxNU2", NU2.Px(), NU2.Py(), weight);
-          FillHist1D("(grid-gen)/gen_pxNU1", deltakx/fabs(NUfromTOP.Px()), weight);
-          FillHist1D("(grid-gen)/gen_pyNU1", deltaky/fabs(NUfromTOP.Py()), weight);
-          FillHist1D("grid/gen_ptNU1", NU1.Pt()/NUfromTOP.Pt(), weight);
+          FillHist1D("(grid-gen)over(gen_pxNU1)", deltakx/fabs(NUfromTOP.Px()), weight);
+          FillHist1D("(grid-gen)over(gen_pyNU1)", deltaky/fabs(NUfromTOP.Py()), weight);
+          FillHist1D("(grid)over(gen_ptNU1)", NU1.Pt()/NUfromTOP.Pt(), weight);
 
           // ... Calculations for MT2 with bisect method ...
           double p_TOPvis[3]     = {     TOPvis.M(),     TOPvis.Px(),     TOPvis.Py() };
@@ -782,19 +795,47 @@ int main(int argc, char* argv[]){
           Mt2::LorentzTransverseVector ANTITOPvis_TVec(Mt2::TwoVector(ANTITOPvis.Px(), ANTITOPvis.Py()), ANTITOPvis.M());
           Mt2::TwoVector NUtotal_pT(NUtotal.Px(), NUtotal.Py());
           double NU1_simplex[2];
+          double NU1_simplex_Z_roots[2];
           double NU2_simplex[2];
+          double NU2_simplex_Z_roots[2];
 
           double basic_MT2_332 = mt2Calculator.mt2_332(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0);
           mt2Calculator.mt2_332_Sq(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0,NU1_simplex,NU2_simplex);
+           kL_calculator(BfromTOP, LEPfromTOP, NU1_simplex, NU1_simplex_Z_roots);
+           kL_calculator(BfromANTITOP, LEPfromANTITOP, NU2_simplex, NU2_simplex_Z_roots);
 
-          double deltakx_simplexgen, deltaky_simplexgen;
-          deltakx_simplexgen = NU1_simplex[0]-NUfromTOP.Px() ;
-          deltaky_simplexgen = NU1_simplex[1]-NUfromTOP.Py() ;
+          if (basic_MT2_332 <= Mtop){
+            FillHist1D("MT2simplex",basic_MT2_332, weight); 
+            FillHist2D("MT2simplex_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),basic_MT2_332, weight);
 
-          FillHist1D("MT2simplex",basic_MT2_332, weight); // was "MT2Bisect"
-          FillHist2D("MT2simplex_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),basic_MT2_332, weight);
-          FillHist1D("(simplex-gen)/gen_pxNU1", deltakx_simplexgen/fabs(NUfromTOP.Px()), weight);
-          FillHist1D("(simplex-gen)/gen_pyNU1", deltaky_simplexgen/fabs(NUfromTOP.Py()), weight);
+            double deltakx_simplexgen, deltaky_simplexgen, deltakz_simplexgen_root1, deltakz_simplexgen_root2, deltakT_simplex;
+            deltakx_simplexgen = NU1_simplex[0]-NUfromTOP.Px() ;
+            deltaky_simplexgen = NU1_simplex[1]-NUfromTOP.Py() ;
+            deltakz_simplexgen_root1 = NU1_simplex_Z_roots[0]-NUfromTOP.Pz() ;
+            deltakz_simplexgen_root2 = NU1_simplex_Z_roots[1]-NUfromTOP.Pz() ;
+            deltakT_simplex = sqrt(NU1_simplex[0]*NU1_simplex[0]+NU1_simplex[1]*NU1_simplex[1]);
+
+            FillHist1D("(simplex-gen)over(gen_pxNU1)", deltakx_simplexgen/fabs(NUfromTOP.Px()), weight);
+            FillHist1D("(simplex-gen)over(gen_pyNU1)", deltaky_simplexgen/fabs(NUfromTOP.Py()), weight);
+            FillHist1D("(simplex-gen)over(gen_pzNU1_root1)", deltakz_simplexgen_root1/fabs(NUfromANTITOP.Pz()), weight);
+            FillHist1D("(simplex-gen)over(gen_pzNU1_root2)", deltakz_simplexgen_root2/fabs(NUfromANTITOP.Pz()), weight);
+            FillHist1D("(simplex)over(gen_ptNU1)",       deltakT_simplex/NUfromTOP.Pt(), weight);
+            FillHist2D("Maos_kTratioVSMAOS_MT2",  basic_MT2_332, deltakT_simplex/NUfromTOP.Pt(), weight);
+
+            double deltakx2_simplexgen, deltaky2_simplexgen, deltakz2_simplexgen_root1, deltakz2_simplexgen_root2, deltakT2_simplex;
+            deltakx2_simplexgen = NU2_simplex[0]-NUfromANTITOP.Px() ;
+            deltaky2_simplexgen = NU2_simplex[1]-NUfromANTITOP.Py() ;
+            deltakz2_simplexgen_root1 = NU2_simplex_Z_roots[0]-NUfromANTITOP.Pz() ;
+            deltakz2_simplexgen_root2 = NU2_simplex_Z_roots[1]-NUfromANTITOP.Pz() ;
+            deltakT2_simplex = sqrt(NU2_simplex[0]*NU2_simplex[0]+NU2_simplex[1]*NU2_simplex[1]);
+
+            FillHist1D("(simplex-gen)over(gen_pxNU2)", deltakx2_simplexgen/fabs(NUfromANTITOP.Px()), weight);
+            FillHist1D("(simplex-gen)over(gen_pyNU2)", deltaky2_simplexgen/fabs(NUfromANTITOP.Py()), weight);
+            FillHist1D("(simplex-gen)over(gen_pzNU2_root1)", deltakz2_simplexgen_root1/fabs(NUfromANTITOP.Pz()), weight);
+            FillHist1D("(simplex-gen)over(gen_pzNU2_root2)", deltakz2_simplexgen_root2/fabs(NUfromANTITOP.Pz()), weight);
+            FillHist1D("(simplex)over(gen_ptNU2)",       deltakT2_simplex/NUfromANTITOP.Pt(), weight);
+            FillHist2D("Maos_kT2ratioVSMAOS_MT2", basic_MT2_332, deltakT2_simplex/NUfromANTITOP.Pt(), weight);
+          }
 
           LEPfromTOP.Boost(-betaTOP);
           lepCosTOP =  LEPfromTOP.Vect().Unit().Dot(-betaTOP.Unit());
@@ -1833,3 +1874,28 @@ double MT(const TLorentzVector& vis, const TLorentzVector& met){
     }
     return TMath::Sqrt(mtsq);
 }
+
+void kL_calculator(const TLorentzVector& Pb, const TLorentzVector& Pl, const double KT[2], double KL_roots[2]){
+
+  TLorentzVector VIS = Pb + Pl;
+  double MOTHER_MASS = Mtop;
+  double INVIS_MASS = 0;
+  double ET_vis2   = VIS.Mag2() + (VIS.Px()*VIS.Px()) + (VIS.Py()*VIS.Py()) ;
+  double ET_invis2 = (INVIS_MASS*INVIS_MASS) + (VIS.Px()*VIS.Px()) + (VIS.Py()*VIS.Py()) ;
+  double A = ( 0.5 * (  (MOTHER_MASS*MOTHER_MASS)-(INVIS_MASS+INVIS_MASS)-VIS.Mag2() ) ) + (VIS.Px()*KT[0]) + (VIS.Py()*KT[1]);
+  double term1 = VIS.Pz()*A ;
+  double term2 =  TMath::Sqrt( (VIS.Pz()*VIS.Pz()) + ET_vis2 );
+  double term3;
+  if ( (A*A) >= (ET_vis2*ET_invis2) ){
+
+    term3 =  TMath::Sqrt( (A*A) - (ET_vis2*ET_invis2) );
+    KL_roots[0] = (1/ET_vis2) * ( term1 + (term2*term3)  );
+    KL_roots[1] = (1/ET_vis2) * ( term1 - (term2*term3)  );
+  }
+  else{
+    KL_roots[0] = -999999; 
+    KL_roots[1] = -999999; 
+  }
+
+}
+  
