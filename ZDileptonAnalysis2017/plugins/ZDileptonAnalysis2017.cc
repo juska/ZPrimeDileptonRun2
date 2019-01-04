@@ -86,11 +86,11 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       float jet_elef[MAXJET], jet_numneutral[MAXJET], jet_chmult[MAXJET];
 
       int nGen;
-      int ntopleps;
-      int nantitopleps;
+      //int ntopleps;
+      //int nantitopleps;
       int gen_status[MAXGEN], gen_PID[MAXGEN], gen_mother0[MAXGEN], gen_mother1[MAXGEN], gen_index[MAXGEN];
       float gen_pt[MAXGEN], gen_mass[MAXGEN], gen_eta[MAXGEN], gen_phi[MAXGEN];
-      float lep_top_costheta[MAXTOPLEP], lep_antitop_costheta[MAXTOPLEP];
+      //float lep_top_costheta[MAXTOPLEP], lep_antitop_costheta[MAXTOPLEP];
       int nGenJet;
       float genJet_pt[MAXJET], genJet_eta[MAXJET], genJet_phi[MAXJET], genJet_mass[MAXJET], genJet_area[MAXJET], genJet_nDaught[MAXJET];
 
@@ -317,10 +317,10 @@ ZDileptonAnalysis2017::beginJob()
     tree->Branch("gen_index",  gen_index, "gen_index[nGen]/I");
     tree->Branch("gen_mother0", gen_mother0, "gen_mother0[nGen]/I");
     tree->Branch("gen_mother1", gen_mother1, "gen_mother1[nGen]/I");
-    tree->Branch("ntopleps", &ntopleps, "ntopleps/I");
-    tree->Branch("nantitopleps", &nantitopleps, "nantitopleps/I");
-    tree->Branch("lep_top_costheta",  lep_top_costheta, "lep_top_costheta[ntopleps]/F");
-    tree->Branch("lep_antitop_costheta",  lep_antitop_costheta, "lep_antitop_costheta[nantitopleps]/F");
+    //tree->Branch("ntopleps", &ntopleps, "ntopleps/I");
+    //tree->Branch("nantitopleps", &nantitopleps, "nantitopleps/I");
+    //tree->Branch("lep_top_costheta",  lep_top_costheta, "lep_top_costheta[ntopleps]/F");
+    //tree->Branch("lep_antitop_costheta",  lep_antitop_costheta, "lep_antitop_costheta[nantitopleps]/F");
 
     tree->Branch("nGenJet", &nGenJet, "nGenJet/I");
     tree->Branch("genJet_pt", genJet_pt, "genJet_pt[nGenJet]/F");
@@ -617,16 +617,18 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     edm::Handle< edm::View<reco::GenParticle> > genParticles;
     iEvent.getByToken(genParticleTag_, genParticles);
     vector<pair<reco::GenParticle, int> > reducedGens;
-    TLorentzVector top, top_com , antitop, antitop_com;
-    TVector3 beta_top , beta_antitop;
-    TLorentzVector LEPfromTOP, LEPfromANTITOP;
-    vector<float> costopandleps, cosantitopandleps;
-    
+    //TLorentzVector top, top_com , antitop, antitop_com;
+    //TVector3 beta_top , beta_antitop;
+    //TLorentzVector LEPfromTOP, LEPfromANTITOP;
+    //vector<float> costopandleps, cosantitopandleps;
     for (int i=0, n=genParticles->size(); i<n; i++) {
       const reco::GenParticle& p = genParticles->at(i);
       int id = p.pdgId();
       int status = p.status();
       int nDaught = p.numberOfDaughters();
+      //if (fabs(id)==6)
+        //cout << "id \t" << id << "\t status \t" << status << "\t ndaughters \t" << nDaught <<endl;
+       
       if (id>1000000)  //Z'
         reducedGens.push_back(make_pair(p,i));
       if (fabs(id)==6 && 20<=status && status<30)  //first t's
@@ -634,7 +636,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
       else if (fabs(id)==6 && nDaught==2) {   //last t's
 
-        if(p.pdgId()==6){
+        /*if(p.pdgId()==6){
           top.SetPtEtaPhiM( p.pt(), p.eta(), p.phi(), p.mass() );
           beta_top =  top.BoostVector() ;
           const reco::GenParticle& top_daughter0 = genParticles->at(p.daughterRef(0).key() );
@@ -726,9 +728,11 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
           LEPfromANTITOP.Boost(-beta_antitop);
           cosantitopandleps.push_back(LEPfromANTITOP.Vect().Unit().Dot(-beta_antitop.Unit()));
 
-        }
+        }*/
 
         const reco::GenParticle& daught0 = genParticles->at( p.daughterRef(0).key() );
+        const reco::GenParticle& daught1 = genParticles->at( p.daughterRef(1).key() );
+        //cout << "daughter0 \t " << daught0.pdgId() << "\t daughter 1 \t " << daught1.pdgId() <<  endl;     
         if ( fabs(daught0.pdgId())==5 || fabs(daught0.pdgId())==24 ) {
           reducedGens.push_back(make_pair(p,i));
           reducedGens.push_back(make_pair( daught0,p.daughterRef(0).key()) ); //b or W (first)
@@ -743,10 +747,10 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         reducedGens.push_back(make_pair( genParticles->at(p.daughterRef(1).key()),p.daughterRef(1).key()) ); //q or lep
       }
     }
-    ntopleps = costopandleps.size();
+    /*ntopleps = costopandleps.size();
     if (ntopleps>0) lep_top_costheta[0] = costopandleps[0];
     nantitopleps = cosantitopandleps.size();
-    if (nantitopleps>0) lep_antitop_costheta[0] = cosantitopandleps[0];
+    if (nantitopleps>0) lep_antitop_costheta[0] = cosantitopandleps[0];*/
     nGen = reducedGens.size();
     for (int i=0; i<nGen; i++) {
       //cout << "\n  \t  #   \t status   \t PID   \t pt   \t mass   \t eta   \t phi   \t index   \t mother0   \t mother1 "<< endl;
