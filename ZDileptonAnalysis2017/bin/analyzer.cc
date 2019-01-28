@@ -26,7 +26,7 @@
 #include "JetMETCorrections/Modules/interface/JetResolution.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 #include "PhysicsTools/Heppy/interface/Davismt2.h"
-#include "MT2MAOS/oxbridgekinetics/src/Mt2/Basic_Mt2_332_Calculator.h"
+#include "Mt2/Basic_Mt2_332_Calculator.h"
 
 using namespace std;
 
@@ -800,7 +800,12 @@ int main(int argc, char* argv[]){
           double NU2_simplex_Z_roots[2];
 
           double basic_MT2_332 = mt2Calculator.mt2_332(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0);
-          mt2Calculator.mt2_332_Sq(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0,NU1_simplex,NU2_simplex);
+//          mt2Calculator.mt2_332_Sq(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0,NU1_simplex,NU2_simplex);
+NU1_simplex[0] = mt2Calculator.getPXInvisA_atMt2Solution();
+NU1_simplex[1] = mt2Calculator.getPYInvisA_atMt2Solution();
+NU2_simplex[0] = mt2Calculator.getPXInvisB_atMt2Solution();
+NU2_simplex[1] = mt2Calculator.getPYInvisB_atMt2Solution();
+
            kL_calculator(BfromTOP, LEPfromTOP, NU1_simplex, NU1_simplex_Z_roots);
            kL_calculator(BfromANTITOP, LEPfromANTITOP, NU2_simplex, NU2_simplex_Z_roots);
 

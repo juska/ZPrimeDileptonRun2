@@ -2,5 +2,5 @@
 <use name="FWCore/ParameterSet"/>
 <use name="root"/>
 <use name="PhysicsTools/Heppy"/>
-<use name="MT2MAOS/oxbridgekinetics"/>
+<use name="oxbridgekinetics-1.2"/>
 <bin name="analyzer" file="analyzer.cc"/>

@@ -608,7 +608,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
   for (int i=0; i<nPVall; i++) {
     const reco::Vertex& pv = primaryVertices->at(i);
-    if( !pv.isFake() && pv.ndof() > 4 && abs(pv.z()) <= 24 && pv.position().rho() <= 2 )
+    if( !pv.isFake() && pv.ndof() > 4 && fabs(pv.z()) <= 24 && fabs(pv.position().rho()) <= 2 )
       nPV++;
   }
 
@@ -731,7 +731,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         }*/
 
         const reco::GenParticle& daught0 = genParticles->at( p.daughterRef(0).key() );
-        const reco::GenParticle& daught1 = genParticles->at( p.daughterRef(1).key() );
+//        const reco::GenParticle& daught1 = genParticles->at( p.daughterRef(1).key() );
         //cout << "daughter0 \t " << daught0.pdgId() << "\t daughter 1 \t " << daught1.pdgId() <<  endl;     
         if ( fabs(daught0.pdgId())==5 || fabs(daught0.pdgId())==24 ) {
           reducedGens.push_back(make_pair(p,i));
@@ -861,8 +861,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     ele_overEoverP[nEle] = fabs(1.0 - ele.eSuperClusterOverP()) / ele.ecalEnergy();
 
     ele_HE[nEle] = ele.hadronicOverEm();
-    constexpr reco::HitPattern::HitCategory missingHitType = reco::HitPattern::MISSING_INNER_HITS;
-    ele_missinghits[nEle] = ele.gsfTrack()->hitPattern().numberOfAllHits(missingHitType); // This  has changed to numberOfAllHits //check
+    ele_missinghits[nEle] = ele.gsfTrack()->hitPattern().numberOfLostHits( reco::HitPattern::MISSING_INNER_HITS );
 
     reco::GsfElectron::PflowIsolationVariables pfIso = ele.pfIsolationVariables();
     float eA = ele_areas_.getEffectiveArea( fabs(ele_etaSupClust[nEle]) );
