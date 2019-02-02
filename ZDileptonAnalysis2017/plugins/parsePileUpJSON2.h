@@ -15,7 +15,7 @@ const float MINBIAS_XS = 69200;
 float getAvgPU(int run, int ls) {
 
   if ( m_PU.find(run) == m_PU.end() || m_PU[run].find(ls) == m_PU[run].end() ){
-    cout << run << "\t" << ls << "\t" << "missing" << endl;
+//    cout << run << "\t" << ls << "\t" << "missing" << endl;
     return -1;
   }
   else return m_PU[run][ls];

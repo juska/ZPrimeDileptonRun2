@@ -44,9 +44,8 @@ bool sortLepPt(const pair<reco::CandidatePtr, char>& lep1, const pair<reco::Cand
 const int MAXJET = 50;
 const int nFilters = 9;
 const int MAXGEN = 20;
-const int MAXTOPLEP = 1; 
+const int MAXTOPLEP = 1;
 const int MAXLEP = 20;
-const int METUNCERT = 4;
 const int nTriggers = 10;
 
 class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResources>  {
@@ -55,7 +54,6 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       ~ZDileptonAnalysis2017();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
 
     private:
       virtual void beginJob() override;
@@ -82,8 +80,13 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       int nJet, jet_hadflavor[MAXJET], jet_parflavor[MAXJET];
       float jet_pt[MAXJET], jet_eta[MAXJET], jet_phi[MAXJET], jet_mass[MAXJET], jet_area[MAXJET], jet_jec[MAXJET];
       float jet_btag[MAXJET], jet_btag_deepcsvprobb[MAXJET], jet_btag_deepcsvprobbb[MAXJET];
-      float jet_nhf[MAXJET], jet_nef[MAXJET], jet_chf[MAXJET], jet_muf[MAXJET];
-      float jet_elef[MAXJET], jet_numneutral[MAXJET], jet_chmult[MAXJET];
+      float jet_nhf[MAXJET], jet_nef[MAXJET], jet_chf[MAXJET], jet_muf[MAXJET], jet_elef[MAXJET], jet_numneutral[MAXJET], jet_chmult[MAXJET];
+
+      char puppiJet_clean[MAXJET];
+      int nPuppiJet, puppiJet_hadflavor[MAXJET], puppiJet_parflavor[MAXJET];
+      float puppiJet_pt[MAXJET], puppiJet_eta[MAXJET], puppiJet_phi[MAXJET], puppiJet_mass[MAXJET], puppiJet_area[MAXJET], puppiJet_jec[MAXJET];
+      float puppiJet_btag[MAXJET], puppiJet_btag_deepcsvprobb[MAXJET], puppiJet_btag_deepcsvprobbb[MAXJET];
+      float puppiJet_nhf[MAXJET], puppiJet_nef[MAXJET], puppiJet_chf[MAXJET], puppiJet_muf[MAXJET], puppiJet_elef[MAXJET], puppiJet_numneutral[MAXJET], puppiJet_chmult[MAXJET];
 
       int nGen;
       //int ntopleps;
@@ -108,8 +111,7 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
 
       float genmet_pt, genmet_px, genmet_py, genmet_sumet, genmet_phi;
       float met_pt, met_px, met_py, met_sumet, met_phi;
-      int nMETUncert;
-      float met_shiftedpx[METUNCERT], met_shiftedpy[METUNCERT];
+      float puppiMet_pt, puppiMet_px, puppiMet_py, puppiMet_sumet, puppiMet_phi;
 
       string metfilters[nFilters] = {
         "Flag_goodVertices",
@@ -145,6 +147,7 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       edm::EDGetTokenT< edm::View<pat::Muon> > muonTag_;
       edm::EDGetTokenT< edm::View<pat::Electron> > electronTag_;
       edm::EDGetTokenT< edm::View<pat::Jet> > jetTag_;
+      edm::EDGetTokenT< edm::View<pat::Jet> > puppiJetTag_;
       double minLepPt_, minSubLepPt_, minDiLepMass_;
       string btag_, btag_deepcsvprobb_, btag_deepcsvprobbb_;
       double minLeadJetPt_;
@@ -158,8 +161,10 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       edm::EDGetTokenT< edm::ValueMap<vid::CutFlowResult> > eleTightIdMapToken_;
       EffectiveAreas ele_areas_;
       edm::EDGetTokenT< edm::View<pat::MET> > metTag_;
+      edm::EDGetTokenT< edm::View<pat::MET> > puppiMetTag_;
       edm::EDGetTokenT<edm::TriggerResults> triggerResultsTag_;
       edm::EDGetTokenT<pat::PackedTriggerPrescales> prescalesTag_;
+      edm::EDGetTokenT<bool> ecalBadCalibFilterUpdate_token;
 
       TH1F* fullMu = new TH1F("fullMu","fullMu",100,0,100);
 
@@ -202,6 +207,7 @@ ZDileptonAnalysis2017::ZDileptonAnalysis2017(const edm::ParameterSet& iConfig):
   minSubLepPt_ = iConfig.getParameter<double>("minSubLepPt");
   minDiLepMass_ = iConfig.getParameter<double>("minDiLepMass");
   jetTag_ = consumes< edm::View<pat::Jet> >( iConfig.getParameter<edm::InputTag>("jetTag") );
+  puppiJetTag_ = consumes< edm::View<pat::Jet> >( iConfig.getParameter<edm::InputTag>("puppiJetTag") );
   btag_ = iConfig.getParameter<string>("btag");
   btag_deepcsvprobb_ = iConfig.getParameter<string>("btag_deepcsvprobb");
   btag_deepcsvprobbb_ = iConfig.getParameter<string>("btag_deepcsvprobbb");
@@ -215,23 +221,23 @@ ZDileptonAnalysis2017::ZDileptonAnalysis2017(const edm::ParameterSet& iConfig):
   eleMediumIdMapToken_ = consumes<edm::ValueMap<vid::CutFlowResult> >( iConfig.getParameter<edm::InputTag>("eleMediumIdMap") );
   eleTightIdMapToken_ = consumes<edm::ValueMap<vid::CutFlowResult> >( iConfig.getParameter<edm::InputTag>("eleTightIdMap") );
   metTag_ = consumes< edm::View<pat::MET> >( iConfig.getParameter<edm::InputTag>("metTag") );
+  puppiMetTag_ = consumes< edm::View<pat::MET> >( iConfig.getParameter<edm::InputTag>("puppiMetTag") );
   triggerResultsTag_ = consumes<edm::TriggerResults>( iConfig.getParameter<edm::InputTag>("triggerResultsTag") );
   prescalesTag_ = consumes<pat::PackedTriggerPrescales>( iConfig.getParameter<edm::InputTag>("prescalesTag") );
+  ecalBadCalibFilterUpdate_token = consumes<bool>( edm::InputTag("ecalBadCalibReducedMINIAODFilter") );
 }
 
 ZDileptonAnalysis2017::~ZDileptonAnalysis2017()
 {
- 
 
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
-ZDileptonAnalysis2017::beginJob()
+void ZDileptonAnalysis2017::beginJob()
 {
   root_file = new TFile(fileName_, "RECREATE");
   tree = new TTree("T", "ZDilepton Tree");
-  filter_failed.assign(nFilters+2, 0);
+  filter_failed.assign(nFilters, 0);
   totalEvts.assign(1, 0); dilep_cut.assign(1, 0); leppt_cut.assign(1, 0); jetpteta_cut.assign(1, 0); met_cut.assign(1, 0); dilepmass_cut.assign(1, 0);
   topPtWeightNOM.assign(1, 0.); topPtWeightDN.assign(1, 0.); pdfUP.assign(1, 0.); pdfDN.assign(1, 0.); q2UP.assign(1, 0.); q2DN.assign(1, 0.);
   pdfUP_noTPW.assign(1, 0.); pdfDN_noTPW.assign(1, 0.); q2UP_noTPW.assign(1, 0.); q2DN_noTPW.assign(1, 0.);
@@ -246,6 +252,7 @@ ZDileptonAnalysis2017::beginJob()
   tree->Branch("nPVall", &nPVall, "nPVall/I");
   tree->Branch("lep0flavor", &lep0flavor, "lep0flavor/B");
   tree->Branch("lep1flavor", &lep1flavor, "lep1flavor/B");
+
   tree->Branch("nJet", &nJet, "nJet/I");
   tree->Branch("jet_clean", jet_clean, "jet_clean[nJet]/B");
   tree->Branch("jet_pt", jet_pt, "jet_pt[nJet]/F");
@@ -257,6 +264,33 @@ ZDileptonAnalysis2017::beginJob()
   tree->Branch("jet_btag", jet_btag, "jet_btag[nJet]/F");
   tree->Branch("jet_btag_deepcsvprobb", jet_btag_deepcsvprobb, "jet_btag_deepcsvprobb[nJet]/F");
   tree->Branch("jet_btag_deepcsvprobbb", jet_btag_deepcsvprobbb, "jet_btag_deepcsvprobbb[nJet]/F");
+  tree->Branch("jet_nhf", jet_nhf, "jet_nhf[nJet]/F");
+  tree->Branch("jet_nef", jet_nef, "jet_nef[nJet]/F");
+  tree->Branch("jet_chf", jet_chf, "jet_chf[nJet]/F");
+  tree->Branch("jet_muf", jet_muf, "jet_muf[nJet]/F");
+  tree->Branch("jet_elef", jet_elef, "jet_elef[nJet]/F");
+  tree->Branch("jet_numneutral", jet_numneutral, "jet_numneutral[nJet]/F");
+  tree->Branch("jet_chmult", jet_chmult, "jet_chmult[nJet]/F");
+
+  tree->Branch("nPuppiJet", &nPuppiJet, "nPuppiJet/I");
+  tree->Branch("puppiJet_clean", puppiJet_clean, "puppiJet_clean[nPuppiJet]/B");
+  tree->Branch("puppiJet_pt", puppiJet_pt, "puppiJet_pt[nPuppiJet]/F");
+  tree->Branch("puppiJet_eta", puppiJet_eta, "puppiJet_eta[nPuppiJet]/F");
+  tree->Branch("puppiJet_phi", puppiJet_phi, "puppiJet_phi[nPuppiJet]/F");
+  tree->Branch("puppiJet_mass", puppiJet_mass, "puppiJet_mass[nPuppiJet]/F");
+  tree->Branch("puppiJet_area", puppiJet_area, "puppiJet_area[nPuppiJet]/F");
+  tree->Branch("puppiJet_jec", puppiJet_jec, "puppiJet_jec[nPuppiJet]/F");
+  tree->Branch("puppiJet_btag", puppiJet_btag, "puppiJet_btag[nPuppiJet]/F");
+  tree->Branch("puppiJet_btag_deepcsvprobb", puppiJet_btag_deepcsvprobb, "puppiJet_btag_deepcsvprobb[nPuppiJet]/F");
+  tree->Branch("puppiJet_btag_deepcsvprobbb", puppiJet_btag_deepcsvprobbb, "puppiJet_btag_deepcsvprobbb[nPuppiJet]/F");
+  tree->Branch("puppiJet_nhf", puppiJet_nhf, "puppiJet_nhf[nPuppiJet]/F");
+  tree->Branch("puppiJet_nef", puppiJet_nef, "puppiJet_nef[nPuppiJet]/F");
+  tree->Branch("puppiJet_chf", puppiJet_chf, "puppiJet_chf[nPuppiJet]/F");
+  tree->Branch("puppiJet_muf", puppiJet_muf, "puppiJet_muf[nPuppiJet]/F");
+  tree->Branch("puppiJet_elef", puppiJet_elef, "puppiJet_elef[nPuppiJet]/F");
+  tree->Branch("puppiJet_numneutral", puppiJet_numneutral, "puppiJet_numneutral[nPuppiJet]/F");
+  tree->Branch("puppiJet_chmult", puppiJet_chmult, "puppiJet_chmult[nPuppiJet]/F");
+
   tree->Branch("nMuon", &nMuon, "nMuon/I");
   tree->Branch("muon_charge", muon_charge, "muon_charge[nMuon]/I");
   tree->Branch("muon_isGlob", muon_isGlob, "muon_isGlob[nMuon]/O");
@@ -272,6 +306,7 @@ ZDileptonAnalysis2017::beginJob()
   tree->Branch("muon_segcom", muon_segcom, "muon_segcom[nMuon]/F");
   tree->Branch("muon_IsMediumID", muon_IsMediumID, "muon_IsMediumID[nMuon]/O");
   tree->Branch("muon_IsTightID", muon_IsTightID, "muon_IsTightID[nMuon]/O");
+
   tree->Branch("nEle", &nEle, "nEle/I");
   tree->Branch("ele_charge", ele_charge, "ele_charge[nEle]/I");
   tree->Branch("ele_pt", ele_pt, "ele_pt[nEle]/F");
@@ -290,22 +325,31 @@ ZDileptonAnalysis2017::beginJob()
   tree->Branch("ele_HE", ele_HE, "ele_HE[nEle]/F");
   tree->Branch("ele_rcpiwec", ele_rcpiwec, "ele_rcpiwec[nEle]/F");
   tree->Branch("ele_missinghits", ele_missinghits, "ele_missinghits[nEle]/I");
+
   tree->Branch("met_pt", &met_pt, "met_pt/F");
   tree->Branch("met_px", &met_px, "met_px/F");
   tree->Branch("met_py", &met_py, "met_py/F");
   tree->Branch("met_sumet", &met_sumet, "met_sumet/F");
   tree->Branch("met_phi", &met_phi, "met_phi/F");
-  tree->Branch("nMETUncert", &nMETUncert, "nMETUncert/I");
-  tree->Branch("met_shiftedpx", met_shiftedpx, "met_shiftedpx[nMETUncert]/F");
-  tree->Branch("met_shiftedpy", met_shiftedpy, "met_shiftedpy[nMETUncert]/F");
+
+  tree->Branch("puppiMet_pt", &puppiMet_pt, "puppiMet_pt/F");
+  tree->Branch("puppiMet_px", &puppiMet_px, "puppiMet_px/F");
+  tree->Branch("puppiMet_py", &puppiMet_py, "puppiMet_py/F");
+  tree->Branch("puppiMet_sumet", &puppiMet_sumet, "puppiMet_sumet/F");
+  tree->Branch("puppiMet_phi", &puppiMet_phi, "puppiMet_phi/F");
+
   tree->Branch("trig_prescale", "std::vector<int>", &trig_prescale);
   tree->Branch("trig_passed", "std::vector<bool>", &trig_passed);
   tree->Branch("trig_name", "std::vector<string>", &trig_name);
   if(isMC_) {
     tree->Branch("wgt_env", "std::vector<float>", &wgt_env);
     tree->Branch("wgt_rep", "std::vector<float>", &wgt_rep);
+
     tree->Branch("jet_hadflavor", jet_hadflavor, "jet_hadflavor[nJet]/I");
     tree->Branch("jet_parflavor", jet_parflavor, "jet_parflavor[nJet]/I");
+
+    tree->Branch("puppiJet_hadflavor", puppiJet_hadflavor, "puppiJet_hadflavor[nPuppiJet]/I");
+    tree->Branch("puppiJet_parflavor", puppiJet_parflavor, "puppiJet_parflavor[nPuppiJet]/I");
 
     tree->Branch("nGen", &nGen, "nGen/I");
     tree->Branch("gen_status",  gen_status, "gen_status[nGen]/I");
@@ -342,8 +386,7 @@ ZDileptonAnalysis2017::beginJob()
 }
 
 // ------------ method called for each event  ------------
-void
-ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+void ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   totalEvts[0]++;
 
@@ -450,19 +493,19 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   iEvent.getByToken(muonTag_, muons);
   edm::Handle< edm::View<pat::Electron> > electrons;
   iEvent.getByToken(electronTag_, electrons);
-  edm::Handle<edm::ValueMap<vid::CutFlowResult> > Veto_id_decisions;
-  iEvent.getByToken(eleVetoIdMapToken_, Veto_id_decisions);
+  edm::Handle<edm::ValueMap<vid::CutFlowResult>> Medium_id_decisions;
+  iEvent.getByToken(eleMediumIdMapToken_, Medium_id_decisions);
 
   vector<pair<reco::CandidatePtr, char> > leps;
 
   for (int i=0, n=muons->size(); i<n; i++) {
-    if (!muons->at(i).isLooseMuon()) continue;
+    if (!muons->at(i).isMediumMuon()) continue;
     leps.push_back( make_pair(muons->ptrAt(i),'m') );
   }
   const int isoCut = 7; //cutname = GsfEleRelPFIsoScaledCut_0, to mask isolation for boosted electrons
   for (int i=0, n=electrons->size(); i<n; i++) {
     const Ptr<pat::Electron> elPtr(electrons, i);
-    if (!(*Veto_id_decisions)[elPtr].getCutFlowResultMasking(isoCut).cutFlowPassed()) continue;
+    if (!(*Medium_id_decisions)[elPtr].getCutFlowResultMasking(isoCut).cutFlowPassed()) continue;
     leps.push_back( make_pair(electrons->ptrAt(i),'e') );
   }
 
@@ -503,7 +546,6 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   for (unsigned int i=0, n=leps[0].first->numberOfSourceCandidatePtrs(); i<n; i++) lep0Sources.push_back(leps[0].first->sourceCandidatePtr(i));
   for (unsigned int i=0, n=leps[1].first->numberOfSourceCandidatePtrs(); i<n; i++) lep1Sources.push_back(leps[1].first->sourceCandidatePtr(i));
 
-
   //------------ Jets ------------//
 
   edm::Handle< edm::View<pat::Jet> > jets;
@@ -523,13 +565,12 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
           jet_p4 -= (*i_d)->p4();
           if (jet_clean[i] == 'n') jet_clean[i] = 'l';
           else if (jet_clean[i] == 's') jet_clean[i] = 'b';
-        } 
+        }
         else if ( find(lep1Sources.begin(), lep1Sources.end(), *i_d ) != lep1Sources.end() ) {
           jet_p4 -= (*i_d)->p4();
           if (jet_clean[i] == 'n') jet_clean[i] = 's';
           else if (jet_clean[i] == 'l') jet_clean[i] = 'b';
-        } 
-
+        }
       }
     }
 
@@ -551,7 +592,6 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     jet_btag_deepcsvprobb[i] = jet.bDiscriminator(btag_deepcsvprobb_);
     jet_btag_deepcsvprobbb[i] = jet.bDiscriminator(btag_deepcsvprobbb_);
 
-
     if (isMC_) {
       jet_hadflavor[i] = jet.hadronFlavour();
       jet_parflavor[i] = jet.partonFlavour();
@@ -564,6 +604,57 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   jetpteta_cut[0]++;
   mass_jetpteta->Fill(mass_ttbar);
 
+ //------------ Puppi Jets ------------//
+
+  edm::Handle< edm::View<pat::Jet> > puppiJets;
+  iEvent.getByToken(puppiJetTag_, puppiJets);
+
+  int puppiJetsize = puppiJets->size();
+  nPuppiJet = puppiJetsize>MAXJET ? MAXJET : puppiJetsize;
+
+  for (int i=0; i<nPuppiJet; i++){
+    const pat::Jet& puppiJet = puppiJets->at(i).correctedJet(0);
+    reco::Candidate::LorentzVector puppiJet_p4 = puppiJet.p4();
+    puppiJet_clean[i] = 'n';
+    if ( reco::deltaR(puppiJet, *leps[0].first) < 0.4 || reco::deltaR(puppiJet, *leps[1].first) < 0.4 ){
+      const vector<reco::CandidatePtr> & dvec = puppiJet.daughterPtrVector();
+      for (vector<reco::CandidatePtr>::const_iterator i_d = dvec.begin(); i_d != dvec.end(); ++i_d){
+        if ( find(lep0Sources.begin(), lep0Sources.end(), *i_d ) != lep0Sources.end() ) {
+          puppiJet_p4 -= (*i_d)->p4();
+          if      (puppiJet_clean[i] == 'n') puppiJet_clean[i] = 'l';
+          else if (puppiJet_clean[i] == 's') puppiJet_clean[i] = 'b';
+        }
+        else if ( find(lep1Sources.begin(), lep1Sources.end(), *i_d ) != lep1Sources.end() ) {
+          puppiJet_p4 -= (*i_d)->p4();
+          if      (puppiJet_clean[i] == 'n') puppiJet_clean[i] = 's';
+          else if (puppiJet_clean[i] == 'l') puppiJet_clean[i] = 'b';
+        }
+      }
+    }
+
+    puppiJet_pt[i] = puppiJet_p4.Pt();
+    puppiJet_eta[i] = puppiJet_p4.Eta();
+    puppiJet_phi[i] = puppiJet_p4.Phi();
+    puppiJet_mass[i] = puppiJet_p4.M();
+    puppiJet_area[i] = puppiJet.jetArea();
+    puppiJet_jec[i] = puppiJets->at(i).jecFactor(0);
+
+    puppiJet_nhf[i] = puppiJet.neutralHadronEnergyFraction();
+    puppiJet_nef[i] = puppiJet.neutralEmEnergyFraction();
+    puppiJet_chf[i] = puppiJet.chargedHadronEnergyFraction();
+    puppiJet_muf[i] = puppiJet.muonEnergyFraction();
+    puppiJet_elef[i] = puppiJet.chargedEmEnergyFraction();
+    puppiJet_numneutral[i] =puppiJet.neutralMultiplicity();
+    puppiJet_chmult[i] = puppiJet.chargedMultiplicity();
+    puppiJet_btag[i] = puppiJet.bDiscriminator(btag_);
+    puppiJet_btag_deepcsvprobb[i] = puppiJet.bDiscriminator(btag_deepcsvprobb_);
+    puppiJet_btag_deepcsvprobbb[i] = puppiJet.bDiscriminator(btag_deepcsvprobbb_);
+
+    if (isMC_) {
+      puppiJet_hadflavor[i] = puppiJet.hadronFlavour();
+      puppiJet_parflavor[i] = puppiJet.partonFlavour();
+    }
+  }
 
  //------------ MET Filters ------------//
 
@@ -573,6 +664,17 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     const edm::TriggerNames& trigNames = iEvent.triggerNames(*patFilterHandle);
     for (int i=0; i<nFilters; i++){
       if(  isMC_ && metfilters[i] == "Flag_eeBadScFilter" ) continue;
+
+      if ( metfilters[i] == "Flag_ecalBadCalibFilter" ) {
+        edm::Handle< bool > passecalBadCalibFilterUpdate ;
+        iEvent.getByToken(ecalBadCalibFilterUpdate_token,passecalBadCalibFilterUpdate);
+        if ( *passecalBadCalibFilterUpdate ) continue;
+        else {
+          filter_failed[i]++;
+          return;
+        }
+      }
+
       const unsigned int trig = trigNames.triggerIndex(metfilters[i]);
       if (trig != trigNames.size()){
         if (!patFilterHandle->accept(trig)){
@@ -628,7 +730,7 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       int nDaught = p.numberOfDaughters();
       //if (fabs(id)==6)
         //cout << "id \t" << id << "\t status \t" << status << "\t ndaughters \t" << nDaught <<endl;
-       
+
       if (id>1000000)  //Z'
         reducedGens.push_back(make_pair(p,i));
       if (fabs(id)==6 && 20<=status && status<30)  //first t's
@@ -821,10 +923,10 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
   //------------ Electrons ------------//
 
+  edm::Handle<edm::ValueMap<vid::CutFlowResult> > Veto_id_decisions;
+  iEvent.getByToken(eleVetoIdMapToken_, Veto_id_decisions);
   edm::Handle<edm::ValueMap<vid::CutFlowResult>> Loose_id_decisions;
   iEvent.getByToken(eleLooseIdMapToken_, Loose_id_decisions);
-  edm::Handle<edm::ValueMap<vid::CutFlowResult>> Medium_id_decisions;
-  iEvent.getByToken(eleMediumIdMapToken_, Medium_id_decisions);
   edm::Handle<edm::ValueMap<vid::CutFlowResult>> Tight_id_decisions;
   iEvent.getByToken(eleTightIdMapToken_, Tight_id_decisions);
   nEle = 0;
@@ -892,14 +994,15 @@ ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   met_sumet = met.uncorSumEt();
   met_phi = met.uncorPhi();
 
-  nMETUncert = METUNCERT;
+  edm::Handle< edm::View<pat::MET> > puppiMets;
+  iEvent.getByToken(puppiMetTag_, puppiMets);
+  const pat::MET& puppiMet = puppiMets->at(0);
 
-  for (int i=0; i<nMETUncert; i++){
-    pat::MET::METUncertainty uncert = static_cast<pat::MET::METUncertainty>(i);
-    pat::MET::METCorrectionLevel level = pat::MET::Type1;
-    met_shiftedpx[i] = met.shiftedPx(uncert, level);
-    met_shiftedpy[i] = met.shiftedPy(uncert, level);
-  }
+  puppiMet_pt = puppiMet.uncorPt();
+  puppiMet_px = puppiMet.uncorPx();
+  puppiMet_py = puppiMet.uncorPy();
+  puppiMet_sumet = puppiMet.uncorSumEt();
+  puppiMet_phi = puppiMet.uncorPhi();
 
   //------------ Triggers ------------//
 
