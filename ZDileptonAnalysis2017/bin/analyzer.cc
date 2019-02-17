@@ -990,12 +990,15 @@ int main(int argc, char* argv[]){
           FillHist2D("cosTheta+_vs_cosTheta-", lepCosTOP, lepCosANTITOP, weight);
 
 
-          LEPfromTOP.Boost(-betatop_fromgennu);
-          lepCostop_fromgennu =  LEPfromTOP.Vect().Unit().Dot(-betatop_fromgennu.Unit());
-          LEPfromTOP.Boost(betatop_fromgennu);
-          FillHist1D("cosTheta_fromgennu", lepCostop_fromgennu, weight);
 
           if (basic_MT2_332 <= Mtop){
+
+            LEPfromTOP.Boost(-betatop_fromgennu);
+            lepCostop_fromgennu =  LEPfromTOP.Vect().Unit().Dot(-betatop_fromgennu.Unit());
+            LEPfromTOP.Boost(betatop_fromgennu); 
+
+            FillHist1D("cosTheta_fromgennu", lepCostop_fromgennu, weight);
+
             LEPfromTOP.Boost(-betatop_xysimplex_zgennu);
             lepCostop_xysimplex_zgennu =  LEPfromTOP.Vect().Unit().Dot(-betatop_xysimplex_zgennu.Unit());
             LEPfromTOP.Boost(betatop_xysimplex_zgennu);
@@ -1024,7 +1027,8 @@ int main(int argc, char* argv[]){
             LEPfromTOP.Boost(-betatop_simplex_root1);
             lepCostop_simplex_root1 =  LEPfromTOP.Vect().Unit().Dot(-betatop_simplex_root1.Unit());
             LEPfromTOP.Boost(betatop_simplex_root1);
-            if (NU1_simplex_Z_roots_Wmass[1]!= -999999) FillHist1D("cosTheta_simplex_root1", lepCostop_simplex_root1, weight);
+            if (NU1_simplex_Z_roots_Wmass[1]!= -999999) 
+              FillHist1D("cosTheta_simplex_root1", lepCostop_simplex_root1, weight);
                  
             if (NU1_simplex_Z_roots_Wmass[0]!= -999999 && NU1_simplex_Z_roots_Wmass[1]!= -999999){
               fabs(NU1_simplex_Z_roots_Wmass[0]-NUfromTOP.Pz()) <= fabs(NU1_simplex_Z_roots_Wmass[1]-NUfromTOP.Pz())?
