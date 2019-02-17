@@ -277,20 +277,26 @@ int main(int argc, char* argv[]){
   hname = Form("cosTheta+_vs_cosTheta-");
   m_Histos2D[hname] = new TH2D(hname,hname,40,-1,1,40,-1,1);
 
-  hname = Form("cosTheta+_simplexTOP_root1");
-  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
-  hname = Form("cosTheta+_simplexTOP_root2");
-  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
-  hname = Form("cosTheta-_simplexANTITOP_root1");
-  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
-  hname = Form("cosTheta-_simplexANTITOP_root2");
+  hname = Form("cosTheta_fromgennu");
   m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
 
-  hname = Form("cosTheta+_vs_cosTheta-_simplex_root1");
-  m_Histos2D[hname] = new TH2D(hname,hname,40,-1,1,40,-1,1);
-  hname = Form("cosTheta+_vs_cosTheta-_simplex_root2");
-  m_Histos2D[hname] = new TH2D(hname,hname,40,-1,1,40,-1,1);
+  hname = Form("cosTheta_xysimplex_zgennu");
+  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
 
+  hname = Form("cosTheta_xygennu_zsimplex_root0");
+  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
+
+  hname = Form("cosTheta_xygennu_zsimplex_root1");
+  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
+
+  hname = Form("cosTheta_simplex_root0");
+  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
+
+  hname = Form("cosTheta_simplex_root1");
+  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
+
+  hname = Form("cosTheta_simplex_diff");
+  m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
 
   hname = Form("MT_W+");
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,200);
@@ -360,14 +366,14 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
   hname = Form("(simplex-gen)over(gen_pyNU1)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex-gen)over(gen_pzNU1_root0)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
   hname = Form("(simplex-gen)over(gen_pzNU1_root1)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(simplex-gen)over(gen_pzNU1_root2)");
-  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
 
-  hname = Form("(simplex-gen)over(gen_pzNU1_root1_Wmass)");
+  hname = Form("(simplex-gen)over(gen_pzNU1_root0_Wmass)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(simplex-gen)over(gen_pzNU1_root2_Wmass)");
+  hname = Form("(simplex-gen)over(gen_pzNU1_root1_Wmass)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
 
   hname = Form("(simplex)over(gen_ptNU1)");
@@ -379,15 +385,15 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
   hname = Form("(simplex-gen)over(gen_pyNU2)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
+  hname = Form("(simplex-gen)over(gen_pzNU2_root0)");
+  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
   hname = Form("(simplex-gen)over(gen_pzNU2_root1)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(simplex-gen)over(gen_pzNU2_root2)");
+
+
+  hname = Form("(simplex-gen)over(gen_pzNU2_root0_Wmass)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-
-
   hname = Form("(simplex-gen)over(gen_pzNU2_root1_Wmass)");
-  m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
-  hname = Form("(simplex-gen)over(gen_pzNU2_root2_Wmass)");
   m_Histos1D[hname] = new TH1D(hname,hname,200,-10,10);
 
   hname = Form("(simplex)over(gen_ptNU2)");
@@ -403,6 +409,13 @@ int main(int argc, char* argv[]){
   m_Histos2D[hname] = new TH2D(hname,hname,300,-300,300,300,-300,300);
   hname = "pyNU2SIMPLEX_vs_pyNUfromANTITOP";
   m_Histos2D[hname] = new TH2D(hname,hname,300,-300,300,300,-300,300);
+
+  hname = "pzsimplex_root0_over_pzgen";
+  m_Histos1D[hname] = new TH1D(hname,hname,800,-80,80);
+  hname = "pzsimplex_root1_over_pzgen";
+  m_Histos1D[hname] = new TH1D(hname,hname,800,-80,80);
+  hname = "h2_pzsimplex_root0_over_pzgen_VS_pzsimplex_root1_over_pzgen";
+  m_Histos2D[hname] = new TH2D(hname,hname,800,-80,80,800,-80,80);
 
 
   /*int nDirs = 8;
@@ -731,20 +744,23 @@ int main(int argc, char* argv[]){
   int sameRlepjet=0;
   time_t start = time(NULL);
 
-  for (Long64_t n=0; n<500000; n++) {
+  for (Long64_t n=0; n<1000000; n++) {
 
     T->GetEntry(n);
     TLorentzVector lep0, lep1;
     weight = weight0;
-    //cout << " ||||||||||| event number\t " << event << "\t ||||||||||" << endl;
     if (isMC) {
       TLorentzVector TOP,  LEPfromTOP,  BfromTOP,  NUfromTOP ;                  // top and it's decay particles
       TLorentzVector ANTITOP,  LEPfromANTITOP,  BfromANTITOP, NUfromANTITOP ;   // antitop and it's decay particles
       TLorentzVector NUtotal;                                                   // nu+nubar system
       TLorentzVector TOPvis, ANTITOPvis;                                        // visible decay products from (anti)top
       TVector3 betaTOP, betaANTITOP;
-      TVector3 betaTOP_fromSimplexNU_root1, betaTOP_fromSimplexNU_root2;
-      TVector3 betaANTITOP_fromSimplexANTINU_root1, betaANTITOP_fromSimplexANTINU_root2;
+      TVector3 betatop_fromgennu;
+      TVector3 betatop_xysimplex_zgennu;      
+      TVector3 betatop_xygennu_zsimplex_root0;      
+      TVector3 betatop_xygennu_zsimplex_root1;      
+      TVector3 betatop_simplex_root0;      
+      TVector3 betatop_simplex_root1;      
 
       if (name.Contains("tt", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
         for (int i=0; i<nGen; i++) {
@@ -761,8 +777,11 @@ int main(int argc, char* argv[]){
           else if (gen_PID[i]==-12 || gen_PID[i]==-14) NUfromANTITOP  = TLV;
         }
         double lepCosTOP, lepCosANTITOP;
-        double lepCosTOP_fromSimplexNU_root1, lepCosTOP_fromSimplexNU_root2;
-        double lepCosANTITOP_fromSimplexANTINU_root1, lepCosANTITOP_fromSimplexANTINU_root2;
+        double lepCostop_fromgennu, lepCostop_xysimplex_zgennu;
+        double lepCostop_xygennu_zsimplex_root0, lepCostop_xygennu_zsimplex_root1;
+        double lepCostop_simplex_root0, lepCostop_simplex_root1;
+
+
         // ... consider only events with both tops decaying leptonically ...
         if (TOP.Mag()!=0 && LEPfromTOP.Mag()!=0 && ANTITOP.Mag()!=0 && LEPfromANTITOP.Mag()!=0 ){ 
           betaTOP     =     TOP.BoostVector() ;  // Lorentz boost
@@ -799,22 +818,11 @@ int main(int argc, char* argv[]){
           FillHist1D("MT2gen", TMath::Max(MT_TOP, MT_ANTITOP), weight);
           FillHist2D("MT2grid_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),MT2gridval, weight);
 
-          /*if ((TOPvis+NU1).M()>= MT2gridval && (ANTITOPvis+NU2).M()>MT2gridval ){
-            FillHist1D("constraint_MT2grid",MT2gridval, weight);
-            FillHist2D("constraint_MT2grid_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),MT2gridval, weight);
-            FillHist1D("(constraint_grid-gen)/gen_pxNU1", deltakx/fabs(NUfromTOP.Px()), weight);
-            FillHist1D("(constraint_grid-gen)/gen_pyNU1", deltaky/fabs(NUfromTOP.Py()), weight);
-            FillHist1D("constraint_grid/gen_ptNU1", NU1.Pt()/NUfromTOP.Pt(), weight);
-          }*/
-
           FillHist1D("pxNU1", NU1.Px(), weight);
           FillHist1D("pyNU1", NU1.Py(), weight);
           FillHist2D("pyNU1_vs_pxNU1", NU1.Px(), NU1.Py(), weight);
           FillHist2D("pxNU1_vs_pxNUfromTOP", NU1.Px(), NUfromTOP.Px(), weight);
-          if (NU1.Px()>=0 && NU1.Px()<2)   FillHist1D("NU1PX0+_MT2grid",MT2gridval, weight);
-          else if (NU1.Px()>=2)   FillHist1D("NU1PX+2_MT2grid",MT2gridval, weight);
-          else if (NU1.Px()<=0 && NU1.Px()>-2)   FillHist1D("NU1PX0-_MT2grid",MT2gridval, weight);
-          else if (NU1.Px()<=-2)   FillHist1D("NU1PX-2_MT2grid",MT2gridval, weight);
+
 
           FillHist1D("pxNU2", NU2.Px(), weight);
           FillHist1D("pyNU2", NU2.Py(), weight);
@@ -838,6 +846,7 @@ int main(int argc, char* argv[]){
           FillHist2D("MT2bisect_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),MT2bisect, weight);
 
           FillHist2D("MT2bisect_vs_MT2grid",  MT2gridval, MT2bisect, weight);
+
           // ... Calculations for MT2 with simplex method ...
           Mt2::Basic_Mt2_332_Calculator mt2Calculator;
           Mt2::LorentzTransverseVector TOPvis_TVec(Mt2::TwoVector(TOPvis.Px(), TOPvis.Py()), TOPvis.M());
@@ -861,46 +870,71 @@ int main(int argc, char* argv[]){
           kL_calculator_Wmass(LEPfromTOP, NU1_simplex, NU1_simplex_Z_roots_Wmass);
           kL_calculator_Wmass(LEPfromANTITOP, NU2_simplex, NU2_simplex_Z_roots_Wmass);
 
-          TLorentzVector SimplexNU_root1, TOP_fromSimplexNU_root1;
-          TLorentzVector SimplexNU_root2, TOP_fromSimplexNU_root2;
-          TLorentzVector SimplexANTINU_root1, ANTITOP_fromSimplexANTINU_root1;
-          TLorentzVector SimplexANTINU_root2, ANTITOP_fromSimplexANTINU_root2;
+          TLorentzVector top_from_gennu;
+          top_from_gennu = LEPfromTOP + BfromTOP + NUfromTOP;
+          betatop_fromgennu = top_from_gennu.BoostVector() ;
 
-          double SimplexNU_root1_energy = sqrt(pow(NU1_simplex[0],2) + pow(NU1_simplex[1],2) +  pow(NU1_simplex_Z_roots_Wmass[0],2));
-          double SimplexNU_root2_energy = sqrt(pow(NU1_simplex[0],2) + pow(NU1_simplex[1],2) +  pow(NU1_simplex_Z_roots_Wmass[1],2));
-          double SimplexANTINU_root1_energy = sqrt(pow(NU2_simplex[0],2) + pow(NU2_simplex[1],2) +  pow(NU2_simplex_Z_roots_Wmass[0],2));
-          double SimplexANTINU_root2_energy = sqrt(pow(NU2_simplex[0],2) + pow(NU2_simplex[1],2) +  pow(NU2_simplex_Z_roots_Wmass[1],2));
+          TLorentzVector top_from_xysimplex_zgennu;
+          TLorentzVector nu_from_xysimplex_zgennu;
+          double nu_en_xysimplex_zgennu = sqrt( pow(NU1_simplex[0],2) + pow(NU1_simplex[1],2) +  pow(NUfromTOP.Pz(),2) );
+          nu_from_xysimplex_zgennu.SetPxPyPzE( NU1_simplex[0] , NU1_simplex[1] , NUfromTOP.Pz() , nu_en_xysimplex_zgennu );          
+          top_from_xysimplex_zgennu = LEPfromTOP + BfromTOP + nu_from_xysimplex_zgennu;
+          betatop_xysimplex_zgennu = top_from_xysimplex_zgennu.BoostVector() ; 
 
-          SimplexNU_root1.SetPxPyPzE( NU1_simplex[0], NU1_simplex[1], NU1_simplex_Z_roots_Wmass[0], SimplexNU_root1_energy );
-          TOP_fromSimplexNU_root1 = LEPfromTOP + BfromTOP + SimplexNU_root1;
-          betaTOP_fromSimplexNU_root1 = TOP_fromSimplexNU_root1.BoostVector() ;
 
-          SimplexNU_root2.SetPxPyPzE( NU1_simplex[0], NU1_simplex[1], NU1_simplex_Z_roots_Wmass[1], SimplexNU_root2_energy );
-          TOP_fromSimplexNU_root2 = LEPfromTOP + BfromTOP + SimplexNU_root2;
-          betaTOP_fromSimplexNU_root2 = TOP_fromSimplexNU_root2.BoostVector() ;
-           
-   
-          SimplexANTINU_root1.SetPxPyPzE( NU2_simplex[0], NU2_simplex[1], NU2_simplex_Z_roots_Wmass[0], SimplexANTINU_root1_energy );
-          ANTITOP_fromSimplexANTINU_root1 = LEPfromANTITOP+ BfromANTITOP + SimplexANTINU_root1;
-          betaANTITOP_fromSimplexANTINU_root1 = ANTITOP_fromSimplexANTINU_root1.BoostVector() ;
+          TLorentzVector top_from_xygennu_zsimplex_root0;
+          TLorentzVector nu_from_xygennu_zsimplex_root0;
+          double nu_en_from_xygennu_zsimplex_root0 = sqrt( pow(NUfromTOP.Px(),2) + pow(NUfromTOP.Py(),2) + pow(NU1_simplex_Z_roots_Wmass[0],2) );
+          nu_from_xygennu_zsimplex_root0.SetPxPyPzE( NUfromTOP.Px(), NUfromTOP.Py(), NU1_simplex_Z_roots_Wmass[0],
+                                                     nu_en_from_xygennu_zsimplex_root0 );           
+          top_from_xygennu_zsimplex_root0 = LEPfromTOP + BfromTOP + nu_from_xygennu_zsimplex_root0;
+          betatop_xygennu_zsimplex_root0 = top_from_xygennu_zsimplex_root0.BoostVector() ;   
 
-          SimplexANTINU_root2.SetPxPyPzE( NU2_simplex[0], NU2_simplex[1], NU2_simplex_Z_roots_Wmass[1], SimplexANTINU_root2_energy );
-          ANTITOP_fromSimplexANTINU_root2 = LEPfromANTITOP+ BfromANTITOP + SimplexANTINU_root2;
-          betaANTITOP_fromSimplexANTINU_root2 = ANTITOP_fromSimplexANTINU_root2.BoostVector() ;
+
+          TLorentzVector top_from_xygennu_zsimplex_root1;
+          TLorentzVector nu_from_xygennu_zsimplex_root1;
+          double nu_en_from_xygennu_zsimplex_root1 = sqrt(pow(NUfromTOP.Px(),2) + pow(NUfromTOP.Py(),2) + pow(NU1_simplex_Z_roots_Wmass[1],2) );
+          nu_from_xygennu_zsimplex_root1.SetPxPyPzE( NUfromTOP.Px(), NUfromTOP.Py(), NU1_simplex_Z_roots_Wmass[1],
+                                                     nu_en_from_xygennu_zsimplex_root1 );          
+          top_from_xygennu_zsimplex_root1 = LEPfromTOP + BfromTOP + nu_from_xygennu_zsimplex_root1;
+          betatop_xygennu_zsimplex_root1 = top_from_xygennu_zsimplex_root1.BoostVector() ;   
+
+
+          TLorentzVector top_from_simplex_root0;
+          TLorentzVector nu_from_simplex_root0;
+          double nu_en_simplex0 = sqrt(pow(NU1_simplex[0],2) + pow(NU1_simplex[1],2) + pow(NU1_simplex_Z_roots_Wmass[0],2) );
+          nu_from_simplex_root0.SetPxPyPzE( NU1_simplex[0], NU1_simplex[1], NU1_simplex_Z_roots_Wmass[0], nu_en_simplex0 );          
+          top_from_simplex_root0 = LEPfromTOP + BfromTOP + nu_from_simplex_root0;
+          betatop_simplex_root0 = top_from_simplex_root0.BoostVector() ;   
+
+
+          TLorentzVector top_from_simplex_root1;
+          TLorentzVector nu_from_simplex_root1;
+          double nu_en_simplex1 = sqrt(pow(NU1_simplex[0],2) + pow(NU1_simplex[1],2) + pow(NU1_simplex_Z_roots_Wmass[1],2) );
+          nu_from_simplex_root1.SetPxPyPzE( NU1_simplex[0], NU1_simplex[1], NU1_simplex_Z_roots_Wmass[1], nu_en_simplex1 );          
+          top_from_simplex_root1 = LEPfromTOP + BfromTOP + nu_from_simplex_root1;
+          betatop_simplex_root1 = top_from_simplex_root1.BoostVector() ; 
+
+
+          //cout << "event \t " << event << "\t gen nu1 pz \t " << NUfromTOP.Pz() << "\t nu1 simplex WM root1 \t "
+	  //<< NU1_simplex_Z_roots_Wmass[0] << "\t nu1 simplex WM root2 \t " << NU1_simplex_Z_roots_Wmass[1] << endl;
+     
+
+
 
           if (basic_MT2_332 <= Mtop){
             FillHist1D("MT2simplex",basic_MT2_332, weight); 
             FillHist2D("MT2simplex_vs_MT2gen", TMath::Max(MT_TOP, MT_ANTITOP),basic_MT2_332, weight);
 
-            double deltakx_simplexgen, deltaky_simplexgen, deltakz_simplexgen_root1, deltakz_simplexgen_root2, deltakT_simplex;
-            double deltakz_simplexgen_root1_Wmass, deltakz_simplexgen_root2_Wmass;
+            double deltakx_simplexgen, deltaky_simplexgen, deltakz_simplexgen_root0, deltakz_simplexgen_root1, deltakT_simplex;
+            double deltakz_simplexgen_root0_Wmass, deltakz_simplexgen_root1_Wmass;
 
             deltakx_simplexgen = NU1_simplex[0]-NUfromTOP.Px() ;
             deltaky_simplexgen = NU1_simplex[1]-NUfromTOP.Py() ;
-            deltakz_simplexgen_root1 = NU1_simplex_Z_roots[0]-NUfromTOP.Pz() ;
-            deltakz_simplexgen_root2 = NU1_simplex_Z_roots[1]-NUfromTOP.Pz() ;
-            deltakz_simplexgen_root1_Wmass = NU1_simplex_Z_roots_Wmass[0]-NUfromTOP.Pz() ;
-            deltakz_simplexgen_root2_Wmass = NU1_simplex_Z_roots_Wmass[1]-NUfromTOP.Pz() ;
+            deltakz_simplexgen_root0 = NU1_simplex_Z_roots[0]-NUfromTOP.Pz() ;
+            deltakz_simplexgen_root1 = NU1_simplex_Z_roots[1]-NUfromTOP.Pz() ;
+            deltakz_simplexgen_root0_Wmass = NU1_simplex_Z_roots_Wmass[0]-NUfromTOP.Pz() ;
+            deltakz_simplexgen_root1_Wmass = NU1_simplex_Z_roots_Wmass[1]-NUfromTOP.Pz() ;
             deltakT_simplex = sqrt(NU1_simplex[0]*NU1_simplex[0]+NU1_simplex[1]*NU1_simplex[1]);
 
 
@@ -909,73 +943,100 @@ int main(int argc, char* argv[]){
             FillHist1D("(simplex-gen)over(gen_pyNU1)", deltaky_simplexgen/fabs(NUfromTOP.Py()), weight);
             FillHist2D("pxNU1SIMPLEX_vs_pxNUfromTOP", NUfromTOP.Px(), NU1_simplex[0], weight);
             FillHist2D("pyNU1SIMPLEX_vs_pyNUfromTOP", NUfromTOP.Py(), NU1_simplex[1], weight);
+            FillHist1D("(simplex-gen)over(gen_pzNU1_root0)", deltakz_simplexgen_root0/fabs(NUfromTOP.Pz()), weight);
             FillHist1D("(simplex-gen)over(gen_pzNU1_root1)", deltakz_simplexgen_root1/fabs(NUfromTOP.Pz()), weight);
-            FillHist1D("(simplex-gen)over(gen_pzNU1_root2)", deltakz_simplexgen_root2/fabs(NUfromTOP.Pz()), weight);
+            FillHist1D("(simplex-gen)over(gen_pzNU1_root0_Wmass)", deltakz_simplexgen_root0_Wmass/fabs(NUfromTOP.Pz()), weight);
             FillHist1D("(simplex-gen)over(gen_pzNU1_root1_Wmass)", deltakz_simplexgen_root1_Wmass/fabs(NUfromTOP.Pz()), weight);
-            FillHist1D("(simplex-gen)over(gen_pzNU1_root2_Wmass)", deltakz_simplexgen_root2_Wmass/fabs(NUfromTOP.Pz()), weight);
             FillHist1D("(simplex)over(gen_ptNU1)",       deltakT_simplex/NUfromTOP.Pt(), weight);
             FillHist2D("Maos_kTratioVSMAOS_MT2",  basic_MT2_332, deltakT_simplex/NUfromTOP.Pt(), weight);
 
-            double deltakx2_simplexgen, deltaky2_simplexgen, deltakz2_simplexgen_root1, deltakz2_simplexgen_root2, deltakT2_simplex;
-            double deltakz2_simplexgen_root1_Wmass, deltakz2_simplexgen_root2_Wmass;
+            double deltakx2_simplexgen, deltaky2_simplexgen, deltakz2_simplexgen_root0, deltakz2_simplexgen_root1, deltakT2_simplex;
+            double deltakz2_simplexgen_root0_Wmass, deltakz2_simplexgen_root1_Wmass;
 
             deltakx2_simplexgen = NU2_simplex[0]-NUfromANTITOP.Px() ;
             deltaky2_simplexgen = NU2_simplex[1]-NUfromANTITOP.Py() ;
-            deltakz2_simplexgen_root1 = NU2_simplex_Z_roots[0]-NUfromANTITOP.Pz() ;
-            deltakz2_simplexgen_root2 = NU2_simplex_Z_roots[1]-NUfromANTITOP.Pz() ;
-            deltakz2_simplexgen_root1_Wmass = NU2_simplex_Z_roots_Wmass[0]-NUfromANTITOP.Pz() ;
-            deltakz2_simplexgen_root2_Wmass = NU2_simplex_Z_roots_Wmass[1]-NUfromANTITOP.Pz() ;
+            deltakz2_simplexgen_root0 = NU2_simplex_Z_roots[0]-NUfromANTITOP.Pz() ;
+            deltakz2_simplexgen_root1 = NU2_simplex_Z_roots[1]-NUfromANTITOP.Pz() ;
+            deltakz2_simplexgen_root0_Wmass = NU2_simplex_Z_roots_Wmass[0]-NUfromANTITOP.Pz() ;
+            deltakz2_simplexgen_root1_Wmass = NU2_simplex_Z_roots_Wmass[1]-NUfromANTITOP.Pz() ;
             deltakT2_simplex = sqrt(NU2_simplex[0]*NU2_simplex[0]+NU2_simplex[1]*NU2_simplex[1]);
 
             FillHist1D("(simplex-gen)over(gen_pxNU2)", deltakx2_simplexgen/fabs(NUfromANTITOP.Px()), weight);
             FillHist1D("(simplex-gen)over(gen_pyNU2)", deltaky2_simplexgen/fabs(NUfromANTITOP.Py()), weight);
             FillHist2D("pxNU2SIMPLEX_vs_pxNUfromANTITOP", NUfromANTITOP.Px(), NU2_simplex[0], weight);
             FillHist2D("pyNU2SIMPLEX_vs_pyNUfromANTITOP", NUfromANTITOP.Py(), NU2_simplex[1], weight);
+            FillHist1D("(simplex-gen)over(gen_pzNU2_root0)", deltakz2_simplexgen_root0/fabs(NUfromANTITOP.Pz()), weight);
             FillHist1D("(simplex-gen)over(gen_pzNU2_root1)", deltakz2_simplexgen_root1/fabs(NUfromANTITOP.Pz()), weight);
-            FillHist1D("(simplex-gen)over(gen_pzNU2_root2)", deltakz2_simplexgen_root2/fabs(NUfromANTITOP.Pz()), weight);
+            FillHist1D("(simplex-gen)over(gen_pzNU2_root0_Wmass)", deltakz2_simplexgen_root0_Wmass/fabs(NUfromANTITOP.Pz()), weight);
             FillHist1D("(simplex-gen)over(gen_pzNU2_root1_Wmass)", deltakz2_simplexgen_root1_Wmass/fabs(NUfromANTITOP.Pz()), weight);
-            FillHist1D("(simplex-gen)over(gen_pzNU2_root2_Wmass)", deltakz2_simplexgen_root2_Wmass/fabs(NUfromANTITOP.Pz()), weight);
             FillHist1D("(simplex)over(gen_ptNU2)",       deltakT2_simplex/NUfromANTITOP.Pt(), weight);
             FillHist2D("Maos_kT2ratioVSMAOS_MT2", basic_MT2_332, deltakT2_simplex/NUfromANTITOP.Pt(), weight);
+
+            FillHist1D("pzsimplex_root0_over_pzgen", double(NU1_simplex_Z_roots_Wmass[0])/NUfromTOP.Pz(), weight);
+            FillHist1D("pzsimplex_root1_over_pzgen", double(NU1_simplex_Z_roots_Wmass[1])/NUfromTOP.Pz(), weight);
+            FillHist2D("h2_pzsimplex_root0_over_pzgen_VS_pzsimplex_root1_over_pzgen", double(NU1_simplex_Z_roots_Wmass[0])/NUfromTOP.Pz(),
+                        double(NU1_simplex_Z_roots_Wmass[1])/NUfromTOP.Pz(), weight);
           }
           LEPfromTOP.Boost(-betaTOP);
           lepCosTOP =  LEPfromTOP.Vect().Unit().Dot(-betaTOP.Unit());
+          LEPfromTOP.Boost(betaTOP);            // boost back to original state, preparing for next boost
+          FillHist1D("cosTheta+", lepCosTOP, weight);
+
           LEPfromANTITOP.Boost(-betaANTITOP);
           lepCosANTITOP =  LEPfromANTITOP.Vect().Unit().Dot(-betaANTITOP.Unit());
-          FillHist1D("cosTheta+", lepCosTOP, weight);
+          LEPfromANTITOP.Boost(betaANTITOP);    // boost back to original state, preparing for next boost
           FillHist1D("cosTheta-", lepCosANTITOP, weight);
+
           FillHist2D("cosTheta+_vs_cosTheta-", lepCosTOP, lepCosANTITOP, weight);
 
 
-          LEPfromTOP.Boost(betaTOP);            // boost back to original state, preparing for next boost
-          LEPfromANTITOP.Boost(betaANTITOP);    // boost back to original state, preparing for next boost
+          LEPfromTOP.Boost(-betatop_fromgennu);
+          lepCostop_fromgennu =  LEPfromTOP.Vect().Unit().Dot(-betatop_fromgennu.Unit());
+          LEPfromTOP.Boost(betatop_fromgennu);
+          FillHist1D("cosTheta_fromgennu", lepCostop_fromgennu, weight);
 
-          LEPfromTOP.Boost(-betaTOP_fromSimplexNU_root1);
-          lepCosTOP_fromSimplexNU_root1 =  LEPfromTOP.Vect().Unit().Dot(-betaTOP_fromSimplexNU_root1.Unit());
-          LEPfromTOP.Boost(betaTOP_fromSimplexNU_root1);  // boost back to original state, preparing for next boost
+          if (basic_MT2_332 <= Mtop){
+            LEPfromTOP.Boost(-betatop_xysimplex_zgennu);
+            lepCostop_xysimplex_zgennu =  LEPfromTOP.Vect().Unit().Dot(-betatop_xysimplex_zgennu.Unit());
+            LEPfromTOP.Boost(betatop_xysimplex_zgennu);
+            FillHist1D("cosTheta_xysimplex_zgennu", lepCostop_xysimplex_zgennu, weight);
 
-          LEPfromTOP.Boost(-betaTOP_fromSimplexNU_root2);
-          lepCosTOP_fromSimplexNU_root2 =  LEPfromTOP.Vect().Unit().Dot(-betaTOP_fromSimplexNU_root2.Unit());
-          LEPfromTOP.Boost(betaTOP_fromSimplexNU_root2);  // boost back to original state, preparing for next boost
+            LEPfromTOP.Boost(-betatop_xygennu_zsimplex_root0);
+            lepCostop_xygennu_zsimplex_root0 =  LEPfromTOP.Vect().Unit().Dot(-betatop_xygennu_zsimplex_root0.Unit());
+            LEPfromTOP.Boost(betatop_xygennu_zsimplex_root0);
+            if (NU1_simplex_Z_roots_Wmass[0]!= -999999) 
+              FillHist1D("cosTheta_xygennu_zsimplex_root0", lepCostop_xygennu_zsimplex_root0, weight);
 
-          LEPfromANTITOP.Boost(-betaANTITOP_fromSimplexANTINU_root1);
-          lepCosANTITOP_fromSimplexANTINU_root1 =  LEPfromANTITOP.Vect().Unit().Dot(-betaANTITOP_fromSimplexANTINU_root1.Unit());
-          LEPfromANTITOP.Boost(betaANTITOP_fromSimplexANTINU_root1);  // boost back to original state, preparing for next boost
-
-          LEPfromANTITOP.Boost(-betaANTITOP_fromSimplexANTINU_root2);
-          lepCosANTITOP_fromSimplexANTINU_root2 =  LEPfromANTITOP.Vect().Unit().Dot(-betaANTITOP_fromSimplexANTINU_root2.Unit());
-          LEPfromANTITOP.Boost(betaANTITOP_fromSimplexANTINU_root2);  // boost back to original state, preparing for next boost
+            LEPfromTOP.Boost(-betatop_xygennu_zsimplex_root1);
+            lepCostop_xygennu_zsimplex_root1 =  LEPfromTOP.Vect().Unit().Dot(-betatop_xygennu_zsimplex_root1.Unit());
+            LEPfromTOP.Boost(betatop_xygennu_zsimplex_root1);
+            if (NU1_simplex_Z_roots_Wmass[1]!= -999999) 
+              FillHist1D("cosTheta_xygennu_zsimplex_root1", lepCostop_xygennu_zsimplex_root1, weight);
 
 
-          FillHist1D("cosTheta+_simplexTOP_root1", lepCosTOP_fromSimplexNU_root1, weight);
-          FillHist1D("cosTheta+_simplexTOP_root2", lepCosTOP_fromSimplexNU_root2, weight);
+            LEPfromTOP.Boost(-betatop_simplex_root0);
+            lepCostop_simplex_root0 =  LEPfromTOP.Vect().Unit().Dot(-betatop_simplex_root0.Unit());
+            LEPfromTOP.Boost(betatop_simplex_root0);
+            if (NU1_simplex_Z_roots_Wmass[0]!= -999999) 
+              FillHist1D("cosTheta_simplex_root0", lepCostop_simplex_root0, weight);
 
-          FillHist1D("cosTheta-_simplexANTITOP_root1", lepCosANTITOP_fromSimplexANTINU_root1, weight);
-          FillHist1D("cosTheta-_simplexANTITOP_root2", lepCosANTITOP_fromSimplexANTINU_root2, weight);
 
-          FillHist2D("cosTheta+_vs_cosTheta-_simplex_root1", lepCosTOP_fromSimplexNU_root1, lepCosANTITOP_fromSimplexANTINU_root1, weight);
-          FillHist2D("cosTheta+_vs_cosTheta-_simplex_root2", lepCosTOP_fromSimplexNU_root2, lepCosANTITOP_fromSimplexANTINU_root2, weight);
-
+            LEPfromTOP.Boost(-betatop_simplex_root1);
+            lepCostop_simplex_root1 =  LEPfromTOP.Vect().Unit().Dot(-betatop_simplex_root1.Unit());
+            LEPfromTOP.Boost(betatop_simplex_root1);
+            if (NU1_simplex_Z_roots_Wmass[1]!= -999999) FillHist1D("cosTheta_simplex_root1", lepCostop_simplex_root1, weight);
+                 
+            if (NU1_simplex_Z_roots_Wmass[0]!= -999999 && NU1_simplex_Z_roots_Wmass[1]!= -999999){
+              fabs(NU1_simplex_Z_roots_Wmass[0]-NUfromTOP.Pz()) <= fabs(NU1_simplex_Z_roots_Wmass[1]-NUfromTOP.Pz())?
+              FillHist1D("cosTheta_simplex_diff", lepCostop_simplex_root0, weight):
+              FillHist1D("cosTheta_simplex_diff", lepCostop_simplex_root1, weight);
+              //if (lepCostop_simplex_root0>=0.8 || lepCostop_simplex_root1>=0.8)
+                   //cout << "diff 1 diff 2 cos1 cos2 " << fabs(NU1_simplex_Z_roots_Wmass[0]-NUfromTOP.Pz()) << "\t" << 
+		   //fabs(NU1_simplex_Z_roots_Wmass[1]-NUfromTOP.Pz()) << "\t" << lepCostop_simplex_root0 << "\t" << lepCostop_simplex_root1
+                   //<< endl;
+            }  
+          }                   
+                                               
         }
 
         // ... consider only events with only top decaying leptonically ...
@@ -2053,7 +2114,6 @@ void kL_calculator(const TLorentzVector& Pb, const TLorentzVector& Pl, const dou
 void kL_calculator_Wmass(const TLorentzVector& Pl, const double KT[2], double KL_roots[2]){
 
   double MOTHER_MASS = Mw;
-  double INVIS_MASS = 0;
   double K_term =  (double(pow(MOTHER_MASS,2))/2) + (Pl.Px() * KT[0]) + (Pl.Py() * KT[1]) ;
   double nu_pT_sq = pow(KT[0],2) + pow(KT[1],2);
   double term_1 = pow(Pl.E(),2) - pow(Pl.Pz(),2);
@@ -2066,8 +2126,7 @@ void kL_calculator_Wmass(const TLorentzVector& Pl, const double KT[2], double KL
   else {
     double numerator_plus = ( K_term * Pl.Pz() ) + sqrt( det );
     double numerator_minus = ( K_term * Pl.Pz() ) - sqrt( det );
-    double denumerator = (pow(Pl.E(),2)-pow(Pl.Pz(),2));
-    KL_roots[0] = double(numerator_plus)/denumerator;
-    KL_roots[1] = double(numerator_minus)/denumerator;
+    KL_roots[0] = double(numerator_plus)/term_1;
+    KL_roots[1] = double(numerator_minus)/term_1;
   }
 }  
