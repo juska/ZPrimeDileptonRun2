@@ -417,6 +417,13 @@ int main(int argc, char* argv[]){
   hname = "h2_pzsimplex_root0_over_pzgen_VS_pzsimplex_root1_over_pzgen";
   m_Histos2D[hname] = new TH2D(hname,hname,800,-80,80,800,-80,80);
 
+  hname = "h2_nu_pz_root0_over_pzgen_VS_nu_pz_root1_over_pzgen";
+  m_Histos2D[hname] = new TH2D(hname,hname,100,-10,10,100,-10,10);
+
+  hname = "h2_antinu_pz_root0_over_pzgen_VS_antinu_pz_root1_over_pzgen";
+  m_Histos2D[hname] = new TH2D(hname,hname,100,-10,10,100,-10,10);
+
+
 
   /*int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
@@ -744,7 +751,7 @@ int main(int argc, char* argv[]){
   int sameRlepjet=0;
   time_t start = time(NULL);
 
-  for (Long64_t n=0; n<1000000; n++) {
+  for (Long64_t n=0; n<100000; n++) {
 
     T->GetEntry(n);
     TLorentzVector lep0, lep1;
@@ -852,6 +859,35 @@ int main(int argc, char* argv[]){
           Mt2::LorentzTransverseVector TOPvis_TVec(Mt2::TwoVector(TOPvis.Px(), TOPvis.Py()), TOPvis.M());
           Mt2::LorentzTransverseVector ANTITOPvis_TVec(Mt2::TwoVector(ANTITOPvis.Px(), ANTITOPvis.Py()), ANTITOPvis.M());
           Mt2::TwoVector NUtotal_pT(NUtotal.Px(), NUtotal.Py());
+
+          double NU1_gen_xy[2];
+          double NU1_gen_xy_Zroots_Wmass[2];
+          double NU2_gen_xy[2];
+          double NU2_gen_xy_Zroots_Wmass[2];
+          
+          NU1_gen_xy[0] = NUfromTOP.Px();
+          NU1_gen_xy[1] = NUfromTOP.Py();
+          kL_calculator_Wmass(LEPfromTOP, NU1_gen_xy, NU1_gen_xy_Zroots_Wmass);
+
+          NU2_gen_xy[0] = NUfromANTITOP.Px();
+          NU2_gen_xy[1] = NUfromANTITOP.Py();
+          kL_calculator_Wmass(LEPfromANTITOP, NU2_gen_xy, NU2_gen_xy_Zroots_Wmass);
+
+
+          cout << "nu gen pz \t" << NUfromTOP.Pz() << "\t" << "\t nu estimated root1 \t" << NU1_gen_xy_Zroots_Wmass[0]<<
+	  "\t nu estimated root2 \t" << NU1_gen_xy_Zroots_Wmass[1] << endl;
+ 
+          cout << "antinu gen pz \t" << NUfromANTITOP.Pz() << "\t" << "\t antinu estimated root1 \t" << NU2_gen_xy_Zroots_Wmass[0]<<
+	  "\t antinu estimated root2 \t" << NU2_gen_xy_Zroots_Wmass[1] << endl;
+
+          cout << "====================================================================================" << endl;
+
+         FillHist2D("h2_nu_pz_root0_over_pzgen_VS_nu_pz_root1_over_pzgen", double(NU1_gen_xy_Zroots_Wmass[0])/NUfromTOP.Pz(),
+                        double(NU1_gen_xy_Zroots_Wmass[1])/NUfromTOP.Pz(), weight);
+
+         FillHist2D("h2_antinu_pz_root0_over_pzgen_VS_antinu_pz_root1_over_pzgen", double(NU2_gen_xy_Zroots_Wmass[0])/NUfromANTITOP.Pz(),
+                        double(NU2_gen_xy_Zroots_Wmass[1])/NUfromANTITOP.Pz(), weight);
+
           double NU1_simplex[2];
           double NU1_simplex_Z_roots[2];
           double NU1_simplex_Z_roots_Wmass[2];
@@ -869,6 +905,7 @@ int main(int argc, char* argv[]){
 
           kL_calculator_Wmass(LEPfromTOP, NU1_simplex, NU1_simplex_Z_roots_Wmass);
           kL_calculator_Wmass(LEPfromANTITOP, NU2_simplex, NU2_simplex_Z_roots_Wmass);
+
 
           TLorentzVector top_from_gennu;
           top_from_gennu = LEPfromTOP + BfromTOP + NUfromTOP;
