@@ -91,7 +91,7 @@ int main(int argc, char* argv[]){
 
   //Jet Corrections and Resolution//
 
-  /*map<string, JetCorrectorParameters*> ResJetPars, L3JetPars, L2JetPars, L1JetPars;
+  map<string, JetCorrectorParameters*> ResJetPars, L3JetPars, L2JetPars, L1JetPars;
   map<string, vector<JetCorrectorParameters> > jetPars, jetL1Pars;
   map<string, FactorizedJetCorrector*> jetCorrectors, jetL1Correctors;
   map<string, JetCorrectionUncertainty*> jecUncert;
@@ -100,7 +100,6 @@ int main(int argc, char* argv[]){
   cout << endl << "Using eras: " << endl;
   for(vector<string>::iterator i_era = eras.begin(); i_era != eras.end(); ++i_era) {
     string era = *i_era;
-
     ResJetPars[era] = new JetCorrectorParameters(era + "/" + era + "_L2L3Residual_" + jet_type + ".txt");
     L3JetPars[era] = new JetCorrectorParameters(era + "/" + era + "_L3Absolute_" + jet_type + ".txt");
     L2JetPars[era] = new JetCorrectorParameters(era + "/" + era + "_L2Relative_" + jet_type + ".txt");
@@ -121,10 +120,10 @@ int main(int argc, char* argv[]){
     else {
       TString tera = era.data();
 
-      if ( tera.Contains("BCDV", TString::kIgnoreCase) ) { cout << "BCD "; m_IOV[era] = make_pair(1, 276811); }
-      else if ( tera.Contains("EFV", TString::kIgnoreCase) ) { cout << "EF "; m_IOV[era] = make_pair(276831, 278801); }
-      else if ( tera.Contains("GV", TString::kIgnoreCase) ) { cout << "G "; m_IOV[era] = make_pair(278802, 280385); }
-      else if ( tera.Contains("HV", TString::kIgnoreCase) ) { cout << "H "; m_IOV[era] = make_pair(280919, 300000); }
+      if ( tera.Contains("B", TString::kIgnoreCase) ) { cout << "B "; m_IOV[era] = make_pair(297046, 299329); }
+      else if ( tera.Contains("C", TString::kIgnoreCase) ) { cout << "C "; m_IOV[era] = make_pair(299368, 302029); }
+      else if ( tera.Contains("DE", TString::kIgnoreCase) ) { cout << "DE "; m_IOV[era] = make_pair(302030, 304797); }
+      else if ( tera.Contains("F", TString::kIgnoreCase) ) { cout << "F "; m_IOV[era] = make_pair(305040, 306462); }
 
       cout << "[" << m_IOV[era].first << ", " << m_IOV[era].second << "]" << endl;
     }
@@ -137,7 +136,7 @@ int main(int argc, char* argv[]){
     res_obj = JME::JetResolution( res_era + "/" + res_era + "_PtResolution_" + jet_type + ".txt" );
     ressf_obj = JME::JetResolutionScaleFactor( res_era + "/" + res_era + "_SF_" + jet_type + ".txt" );
   }
-  */
+  
   //Open Files//
 
   TFile* inFile = TFile::Open(inName);
@@ -873,15 +872,6 @@ int main(int argc, char* argv[]){
           NU2_gen_xy[1] = NUfromANTITOP.Py();
           kL_calculator_Wmass(LEPfromANTITOP, NU2_gen_xy, NU2_gen_xy_Zroots_Wmass);
 
-
-          cout << "nu gen pz \t" << NUfromTOP.Pz() << "\t" << "\t nu estimated root1 \t" << NU1_gen_xy_Zroots_Wmass[0]<<
-	  "\t nu estimated root2 \t" << NU1_gen_xy_Zroots_Wmass[1] << endl;
- 
-          cout << "antinu gen pz \t" << NUfromANTITOP.Pz() << "\t" << "\t antinu estimated root1 \t" << NU2_gen_xy_Zroots_Wmass[0]<<
-	  "\t antinu estimated root2 \t" << NU2_gen_xy_Zroots_Wmass[1] << endl;
-
-          cout << "====================================================================================" << endl;
-
          FillHist2D("h2_nu_pz_root0_over_pzgen_VS_nu_pz_root1_over_pzgen", double(NU1_gen_xy_Zroots_Wmass[0])/NUfromTOP.Pz(),
                         double(NU1_gen_xy_Zroots_Wmass[1])/NUfromTOP.Pz(), weight);
 
@@ -1098,9 +1088,8 @@ int main(int argc, char* argv[]){
           FillHist1D("cosTheta-", lepCosANTITOP, weight);
 
         }
-
-
       }
+
       /*weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
 
       //topPt, pdf, and q2 reweighting - only affect ttbar
