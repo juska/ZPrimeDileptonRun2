@@ -1,21 +1,25 @@
+#chad harrington 2019
+#execute: python python/calculate_weights.py -l 25.6
 import os
 import argparse
-
-#name, cross-section, nEvents
-datasets = ( ('TTjets',831760,153531390), ('dylow',18610000,39521230) )
+from files import mcTups
 
 def main() :
-
   parser = argparse.ArgumentParser()
   parser.add_argument( "-l", "--lumi", type=float, action='store', required=True, help="Luminosity" )
   args = parser.parse_args()
+
+  calc( args.lumi )
+
+def calc( lumi ) :
+  lumi = float(lumi)
 
   fname = "mc_weights.txt"
   file = open( "tmp_"+fname, "w+" )
   file.write( "dataset lumi xs lumi*xs events weight\n" )
 
-  for set in datasets :
-    file.write( "%s %.3f %.3f %.3f %i %.3f\n" % (set[0], args.lumi, set[1], args.lumi*set[1], set[2], args.lumi*set[1]/set[2]) )
+  for mc in mcTups :
+    file.write( "%s %.3f %.3f %.3f %i %f\n" % (mc.name, lumi, mc.xs, lumi*mc.xs, mc.nEvt, lumi*mc.xs/mc.nEvt) )
 
   file.close()
 

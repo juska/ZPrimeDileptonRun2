@@ -139,6 +139,7 @@ int main(int argc, char* argv[]){
   //Open Files//
 
   TFile* inFile = TFile::Open(inName);
+  if (!inFile) return -1;
 
   TTree* T = (TTree*) inFile->Get("T");
   Long64_t nEntries = T->GetEntries();
@@ -158,18 +159,23 @@ int main(int argc, char* argv[]){
 
   if (isMC) {
     TFile* muTrigSfFile = TFile::Open(muTrigSfName);
+    if (!muTrigSfFile) return -1;
     muTrigSfHist = (TH2F*) muTrigSfFile->Get("Mu50_PtEtaBins/abseta_pt_ratio");
 
     TFile* muIdSfFile = TFile::Open(muIdSfName);
+    if (!muIdSfFile) return -1;
     muIdSfHist = (TH2F*) muIdSfFile->Get("NUM_TightID_DEN_genTracks_pt_abseta");
 
     TFile* eTrigSfFile = TFile::Open(eTrigSfName);
+    if (!eTrigSfFile) return -1;
     eTrigSfHist = (TH2F*) eTrigSfFile->Get("tight_ScaleFactor");
 
     TFile* eRecoSfFile = TFile::Open(eRecoSfName);
+    if (!eRecoSfFile) return -1;
     eRecoSfHist = (TH2F*) eRecoSfFile->Get("EGamma_SF2D");
 
     TFile* eIdSfFile = TFile::Open(eIdSfName);
+    if (!eIdSfFile) return -1;
     eIdSfHist = (TH2F*) eIdSfFile->Get("EGamma_SF2D");
 
     muTrig_pT = muTrigSfHist->GetYaxis()->GetBinCenter(muTrigSfHist->GetYaxis()->GetNbins());
@@ -179,11 +185,13 @@ int main(int argc, char* argv[]){
     eId_pT = eIdSfHist->GetYaxis()->GetBinCenter(eIdSfHist->GetYaxis()->GetNbins());
 
     TFile* btagFile = TFile::Open(btagName);
+    if (!btagFile) return -1;
     btag_eff_b = (TGraphAsymmErrors*) btagFile->Get( Form("%s/b_LWP_%s", channel.data(), channel.data()) );
     btag_eff_c = (TGraphAsymmErrors*) btagFile->Get( Form("%s/c_LWP_%s", channel.data(), channel.data()) );
     btag_eff_udsg = (TGraphAsymmErrors*) btagFile->Get( Form("%s/udsg_LWP_%s", channel.data(), channel.data()) );
 
     TFile* pileupFile = TFile::Open(pileupName);
+    if (!pileupFile) return -1;
     TString pileup = "NOMINAL";
     if (uncert.Contains("pileup")) pileup = uncert=="pileupUP"?"UP":"DOWN";
 
