@@ -49,14 +49,13 @@ map<TString, TH2*> m_Histos2D;
 
 //parameters- edit in pars.txt
 bool isMC;
-TString jec="NOMINAL", jer="NOMINAL", btagSF="NOMINAL", mistagSF="NOMINAL", pileup="NOMINAL", pdf="NOMINAL", q2ttbar="NOMINAL"; //NOMINAL, UP, DOWN
-TString muTrigSys="NOMINAL", muIdSys="NOMINAL", eleTrigSys="NOMINAL", eleIdSys="NOMINAL";
-TString topPtWeight="NOMINAL"; //NOMINAL (sqrt tPt*tbarPt), UP (no top reweighting), DOWN is NOT an option (made symmetric with UP in later stages)
-TString setSUMDRCut="OFF";
+TString uncert;
+//jec, jer, btagSF, mistagSF, pileup, pdf, q2ttbar, muTrigSys, muIdSys, eleTrigSys, eleIdSys : UP or DOWN
+//topPtWeight : default (sqrt tPt*tbarPt), UP (no top reweighting), DOWN is NOT an option (made symmetric with UP in later stages)
+TString drCut;
 //ON (keep events with sumrmin<2.0), REVERSE (keep events with sumrmin>=2.0), OFF (no cut)
 //ONbt (keep events with sumrmin<1.0),  ONnb (keep events with 1<=sumrmin<2.0)
-TString inName, outName, muTrigSfName, muTrackSfName, eTrigSfName, eRecoSfName, eIdSfName, btagName, pileupName;
-map<TString, double> muTrigSfNames, muIdSfNames;
+TString inName, outName, muTrigSfName, muIdSfName, eTrigSfName, eRecoSfName, eIdSfName, btagName, pileupName;
 string channel, jet_type, res_era;
 vector<string> eras;
 double weight0, weight;
@@ -120,10 +119,10 @@ int main(int argc, char* argv[]){
     else {
       TString tera = era.data();
 
-      if ( tera.Contains("B", TString::kIgnoreCase) ) { cout << "B "; m_IOV[era] = make_pair(297046, 299329); }
-      else if ( tera.Contains("C", TString::kIgnoreCase) ) { cout << "C "; m_IOV[era] = make_pair(299368, 302029); }
-      else if ( tera.Contains("DE", TString::kIgnoreCase) ) { cout << "DE "; m_IOV[era] = make_pair(302030, 304797); }
-      else if ( tera.Contains("F", TString::kIgnoreCase) ) { cout << "F "; m_IOV[era] = make_pair(305040, 306462); }
+      if ( tera.Contains("B_V", TString::kIgnoreCase) ) { cout << "B "; m_IOV[era] = make_pair(297046, 299329); }
+      else if ( tera.Contains("C_V", TString::kIgnoreCase) ) { cout << "C "; m_IOV[era] = make_pair(299368, 302029); }
+      else if ( tera.Contains("DE_V", TString::kIgnoreCase) ) { cout << "DE "; m_IOV[era] = make_pair(302030, 304797); }
+      else if ( tera.Contains("F_V", TString::kIgnoreCase) ) { cout << "F "; m_IOV[era] = make_pair(305040, 306462); }
 
       cout << "[" << m_IOV[era].first << ", " << m_IOV[era].second << "]" << endl;
     }
@@ -136,7 +135,7 @@ int main(int argc, char* argv[]){
     res_obj = JME::JetResolution( res_era + "/" + res_era + "_PtResolution_" + jet_type + ".txt" );
     ressf_obj = JME::JetResolutionScaleFactor( res_era + "/" + res_era + "_SF_" + jet_type + ".txt" );
   }
-  
+
   //Open Files//
 
   TFile* inFile = TFile::Open(inName);
@@ -147,37 +146,22 @@ int main(int argc, char* argv[]){
   cout << "Processing " + inName << endl;
   TString name = inName( inName.Last('/')+1, inName.Last('.')-inName.Last('/')-1);
   cout << name << endl;
-  //cout << "Channel: " + channel << endl;
+  cout << "Channel: " + channel << endl;
 
   //Reweighting and SF Files//
-  /*
+
   TH1F* pileup_weights=0;
   TH2F* muTrigSfHist=0, *muIdSfHist=0, *eTrigSfHist=0, *eRecoSfHist=0, *eIdSfHist=0;
-  TGraphAsymmErrors* muTrackSfGraph=0, *btag_eff_b=0, *btag_eff_c=0, *btag_eff_udsg=0;
+  TGraphAsymmErrors *btag_eff_b=0, *btag_eff_c=0, *btag_eff_udsg=0;
 
   float muTrig_pT=0, muId_pT=0, eTrig_pT=0, eReco_pT=0, eId_pT=0;
 
   if (isMC) {
-    vector<TH2F*> muTrigSfHists;
-    for (const auto& it : muTrigSfNames) {
-      TFile* muTrigSfFile = TFile::Open(it.first);
-      muTrigSfHists.push_back( (TH2F*) muTrigSfFile->Get("Mu50_OR_TkMu50_PtEtaBins/abseta_pt_ratio") );
-      muTrigSfHists.back()->Scale(it.second);
-    }
-    muTrigSfHist = muTrigSfHists[0];
-    for (unsigned int i=1; i<muTrigSfHists.size(); i++) muTrigSfHist->Add( muTrigSfHists[i] );
+    TFile* muTrigSfFile = TFile::Open(muTrigSfName);
+    muTrigSfHist = (TH2F*) muTrigSfFile->Get("Mu50_PtEtaBins/abseta_pt_ratio");
 
-    vector<TH2F*> muIdSfHists;
-    for (const auto& it : muIdSfNames) {
-      TFile* muIdSfFile = TFile::Open(it.first);
-      muIdSfHists.push_back( (TH2F*) muIdSfFile->Get("MC_NUM_TightID_DEN_genTracks_PAR_pt_eta/abseta_pt_ratio") );
-      muIdSfHists.back()->Scale(it.second);
-    }
-    muIdSfHist = muIdSfHists[0];
-    for (unsigned int i=1; i<muIdSfHists.size(); i++) muIdSfHist->Add( muIdSfHists[i] );
-
-    TFile* muTrackSfFile = TFile::Open(muTrackSfName);
-    muTrackSfGraph = (TGraphAsymmErrors*) muTrackSfFile->Get("ratio_eff_eta3_dr030e030_corr");
+    TFile* muIdSfFile = TFile::Open(muIdSfName);
+    muIdSfHist = (TH2F*) muIdSfFile->Get("NUM_TightID_DEN_genTracks_pt_abseta");
 
     TFile* eTrigSfFile = TFile::Open(eTrigSfName);
     eTrigSfHist = (TH2F*) eTrigSfFile->Get("tight_ScaleFactor");
@@ -200,6 +184,8 @@ int main(int argc, char* argv[]){
     btag_eff_udsg = (TGraphAsymmErrors*) btagFile->Get( Form("%s/udsg_LWP_%s", channel.data(), channel.data()) );
 
     TFile* pileupFile = TFile::Open(pileupName);
+    TString pileup = "NOMINAL";
+    if (uncert.Contains("pileup")) pileup = uncert=="pileupUP"?"UP":"DOWN";
 
     TIter nextHist(pileupFile->GetDirectory(pileup)->GetListOfKeys());
     TKey* histKey;
@@ -218,7 +204,7 @@ int main(int argc, char* argv[]){
 
   enum Cuts{
     countEvts, countDilep, countLeppt, countDilepmass, countJetpteta, countMet,
-    channelCut, trigCut, lepkinCut, signCut, thirdLepCut, dilepmassCut, dilepVetoCut, ptrelCut, dRCut, jetCut,
+    channelCut, trigCut, lepkinCut, signCut, thirdLepCut, dilepmassCut, dilepVetoCut, ptrelCut, drEnumCut, jetCut,
     zerobtagCut1jet_metR, onebtagCut1jet_metR, zerobtagCut2jets_metR, morethan0btagCut2jets_metR,
     zerobtagCut1jet, onebtagCut1jet, zerobtagCut2jets, morethan0btagCut2jets, numCuts
   };
@@ -228,7 +214,7 @@ int main(int argc, char* argv[]){
   v_cuts[countDilepmass]=make_pair("Dilepton Mass Cut",0.); v_cuts[countJetpteta]=make_pair("Leading Jet Pt/eta cut",0.);
   v_cuts[countMet]=make_pair("MET Filters",0.); v_cuts[channelCut]=make_pair("Correct Channel",0.); v_cuts[signCut]=make_pair("Opposite Lepton Sign",0.);
   v_cuts[trigCut]=make_pair("HLT Trigger",0.); v_cuts[lepkinCut]=make_pair("Lepton kinematics cut",0.); v_cuts[thirdLepCut]=make_pair("Third lepton cut",0.);
-  v_cuts[dilepmassCut]=make_pair("Dilepton mass cut",0.); v_cuts[ptrelCut]=make_pair("pTrel cut",0.); v_cuts[dRCut]=make_pair("DeltaR cut",0.);
+  v_cuts[dilepmassCut]=make_pair("Dilepton mass cut",0.); v_cuts[ptrelCut]=make_pair("pTrel cut",0.); v_cuts[drEnumCut]=make_pair("DeltaR cut",0.);
   v_cuts[dilepVetoCut]=make_pair("Z-mass veto",0.); v_cuts[jetCut]=make_pair(">= 1 jet",0.);
   v_cuts[zerobtagCut1jet_metR]=make_pair("= 1 Jet, = 0 btags, metR",0.);  v_cuts[onebtagCut1jet_metR]=make_pair("= 1 Jet, >= 1 btag, metR",0.);
   v_cuts[zerobtagCut2jets_metR]=make_pair(">= 2 Jets, = 0 btags, metR",0.); v_cuts[morethan0btagCut2jets_metR]=make_pair(">= 2 Jets, >= 1 btag, metR",0.);
@@ -253,8 +239,9 @@ int main(int argc, char* argv[]){
   vector<pair<string, double> > v_llcuts = v_cuts, v_ljcuts = v_cuts, v_jjcuts = v_cuts;
   vector<pair<string, double> >* v_cuts_ptr = &v_llcuts;
 
-  //ttbar reweighting
-  if ( inName.Contains("ttbar", TString::kIgnoreCase) && topPtWeight=="NOMINAL" ) {
+  //ttbar reweighting (done by default)
+  if ( uncert=="topPtWeightDOWN" ) return -1;
+  if ( inName.Contains("ttbar", TString::kIgnoreCase) && uncert!="topPtWeightUP" ) {
     double topPtWeightNOM=0, total=0;
 
     nextkey = inFile->GetListOfKeys();
@@ -265,7 +252,10 @@ int main(int argc, char* argv[]){
       else if (keyname=="topPtWeightNOM") topPtWeightNOM += (*(vector<double>*)key->ReadObj())[0];
     }
     weight0 *= total / topPtWeightNOM;
-  }*/
+  }
+  TString btagSF, mistagSF;
+  if (uncert.Contains("btagSF"))   btagSF = uncert=="btagSFUP"?"UP":"DOWN";
+  if (uncert.Contains("mistagSF")) mistagSF = uncert=="mistagSFUP"?"UP":"DOWN";
 
   //Histograms//
   TString hname;
@@ -551,8 +541,6 @@ int main(int argc, char* argv[]){
   TString hname = "muTrigSf";
   m_Histos1D[hname] = new TH1D(hname,hname,200,0.5,1.5);
   hname = "muIdSf";
-  m_Histos1D[hname] = new TH1D(hname,hname,100,0,2);
-  hname = "muTrackSf";
   m_Histos1D[hname] = new TH1D(hname,hname,100,0,2);
   hname = "eTrigSf";
   m_Histos1D[hname] = new TH1D(hname,hname,100,0,2);
@@ -1097,7 +1085,7 @@ int main(int argc, char* argv[]){
 
         //topPt reweighting - use last t's
         //could store this value in branch using ttbar.c to save time in analyze
-        if (topPtWeight == "NOMINAL") {
+        if (uncert!="topPtWeightUP") {
           double t_pt2=0, tbar_pt2=0;
           for (int i=0; i<nGen; i++) {
             if (gen_PID[i]==6 && gen_status[i]>30) t_pt2 = gen_pt[i];
@@ -1109,21 +1097,21 @@ int main(int argc, char* argv[]){
           FillHist1D("tbar_pt", tbar_pt2, weight);
         }
         //pdf reweighting
-        if (pdf != "NOMINAL") {
+        if (uncert=="pdfUP" || uncert=="pdfDOWN") {
           vector<float> pdf_plus, pdf_minus;
 
           for (unsigned int i=0, n=wgt_rep->size(); i<n; i++) {
             if (wgt_rep->at(i) >= 1.) pdf_plus.push_back(wgt_rep->at(i));
             else                      pdf_minus.push_back(wgt_rep->at(i));
           }
-          if      (pdf == "UP")   weight *= (1. + rms_pm(pdf_plus));
-          else if (pdf == "DOWN") weight *= (1. - rms_pm(pdf_minus));
+          if      (uncert == "pdfUP")   weight *= (1. + rms_pm(pdf_plus));
+          else if (uncert == "pdfDOWN") weight *= (1. - rms_pm(pdf_minus));
         }
         //q2 scale reweighting
-        if      (q2ttbar == "UP")   weight *= TMath::MaxElement(wgt_env->size(), &wgt_env->at(0));
-        else if (q2ttbar == "DOWN") weight *= TMath::MinElement(wgt_env->size(), &wgt_env->at(0));
+        if      (uncert == "q2ttbarUP")   weight *= TMath::MaxElement(wgt_env->size(), &wgt_env->at(0));
+        else if (uncert == "q2ttbarDOWN") weight *= TMath::MinElement(wgt_env->size(), &wgt_env->at(0));
       }
-/*
+
       //leptonic, semi-leptonic, or hadronic channel from gen information
       if (inName.Contains("ttbar", TString::kIgnoreCase) || inName.Contains("gluon", TString::kIgnoreCase) || inName.Contains("zprime", TString::kIgnoreCase)) {
         TString w_indices = "";
@@ -1147,19 +1135,16 @@ int main(int argc, char* argv[]){
         if ( !(*trig_passed)[1] && !(*trig_passed)[2] ) continue;
 
         if (isMC) {
-          double muTrackSf = muTrackSfGraph->Eval(muon_eta[0]) * muTrackSfGraph->Eval(muon_eta[1]);
-          weight *= muTrackSf;
-
           int bin0 = muTrigSfHist->FindBin( fabs(muon_eta[0]), muon_pt[0]>muTrig_pT?muTrig_pT:muon_pt[0] );
           //int bin1 = muTrigSfHist->FindBin( fabs(muon_eta[1]), muon_pt[1]>muTrig_pT?muTrig_pT:muon_pt[1] );
 
           double muTrigSf0 = muTrigSfHist->GetBinContent( bin0 );
           //double muTrigSf1 = muTrigSfHist->GetBinContent( bin1 );
-          if      (muTrigSys == "UP")   {
+          if      (uncert == "muTrigSysUP")   {
             muTrigSf0 += sqrt( muTrigSfHist->GetBinError( bin0 )*muTrigSfHist->GetBinError( bin0 ) + 0.01*muTrigSf0*0.01*muTrigSf0 );
             //muTrigSf1 += sqrt( muTrigSfHist->GetBinError( bin1 )*muTrigSfHist->GetBinError( bin1 ) + 0.01*muTrigSf1*0.01*muTrigSf1 );
           }
-          else if (muTrigSys == "DOWN") {
+          else if (uncert == "muTrigSysDOWN") {
             muTrigSf0 -= sqrt( muTrigSfHist->GetBinError( bin0 )*muTrigSfHist->GetBinError( bin0 ) + 0.01*muTrigSf0*0.01*muTrigSf0 );
             //muTrigSf1 -= sqrt( muTrigSfHist->GetBinError( bin1 )*muTrigSfHist->GetBinError( bin1 ) + 0.01*muTrigSf1*0.01*muTrigSf1 );
           }
@@ -1168,7 +1153,6 @@ int main(int argc, char* argv[]){
           //weight *= muTrigSf0*muTrigSf1;
           weight *= muTrigSf0;
 
-          FillHist1D("muTrackSf", muTrackSf, 1.);
           FillHist1D("muTrigSf", muTrigSf0, 1.);
         }
         v_cuts[trigCut].second += weight;  v_cuts_ptr->at(trigCut).second += weight;
@@ -1183,13 +1167,13 @@ int main(int argc, char* argv[]){
 
           double muIdSf0 = muIdSfHist->GetBinContent( bin0 );
           double muIdSf1 = muIdSfHist->GetBinContent( bin1 );
-          if      (muIdSys == "UP")   {
-            muIdSf0 += sqrt( muIdSfHist->GetBinError( bin0 )*muIdSfHist->GetBinError( bin0 ) + 0.02*muIdSf0*0.02*muIdSf0 );
-            muIdSf1 += sqrt( muIdSfHist->GetBinError( bin1 )*muIdSfHist->GetBinError( bin1 ) + 0.02*muIdSf1*0.02*muIdSf1 );
+          if      (uncert == "muIdSysUP")   {
+            muIdSf0 += muIdSfHist->GetBinError( bin0 );
+            muIdSf1 += muIdSfHist->GetBinError( bin1 );
           }
-          else if (muIdSys == "DOWN") {
-            muIdSf0 -= sqrt( muIdSfHist->GetBinError( bin0 )*muIdSfHist->GetBinError( bin0 ) + 0.02*muIdSf0*0.02*muIdSf0 );
-            muIdSf1 -= sqrt( muIdSfHist->GetBinError( bin1 )*muIdSfHist->GetBinError( bin1 ) + 0.02*muIdSf1*0.02*muIdSf1 );
+          else if (uncert == "muIdSysDOWN") {
+            muIdSf0 -= muIdSfHist->GetBinError( bin0 );
+            muIdSf1 -= muIdSfHist->GetBinError( bin1 );
           }
 
           weight *= muIdSf0*muIdSf1;
@@ -1224,14 +1208,14 @@ int main(int argc, char* argv[]){
 
           double eTrigSf0 = eTrigSfHist->GetBinContent( bin0 );
           double eTrigSf1 = eTrigSfHist->GetBinContent( bin1 );
-          if      (eleTrigSys == "UP")   {
+          if      (uncert == "eleTrigSysUP")   {
             double af = (ele_pt[0]>eTrig_pT) ? 2 : 1;
             eTrigSf0 += sqrt( af*eTrigSfHist->GetBinError( bin0 )*af*eTrigSfHist->GetBinError( bin0 ) + 0.02*eTrigSf0*0.02*eTrigSf0 );
 
             af = (ele_pt[1]>eTrig_pT) ? 2 : 1;
             eTrigSf1 += af*eTrigSfHist->GetBinError( bin1 );
           }
-          else if (eleTrigSys == "DOWN") {
+          else if (uncert == "eleTrigSysDOWN") {
             double af = (ele_pt[0]>eTrig_pT) ? 2 : 1;
             eTrigSf0 -= sqrt( af*eTrigSfHist->GetBinError( bin0 )*af*eTrigSfHist->GetBinError( bin0 ) + 0.02*eTrigSf0*0.02*eTrigSf0 );
 
@@ -1259,11 +1243,11 @@ int main(int argc, char* argv[]){
 
           double eIdSf0 = eIdSfHist->GetBinContent( bin0 );
           double eIdSf1 = eIdSfHist->GetBinContent( bin1 );
-          if      (eleIdSys == "UP")   {
+          if      (uncert == "eleIdSysUP")   {
             eIdSf0 += eIdSfHist->GetBinError( bin0 );
             eIdSf1 += eIdSfHist->GetBinError( bin1 );
           }
-          else if (eleIdSys == "DOWN") {
+          else if (uncert == "eleIdSysDOWN") {
             eIdSf0 -= eIdSfHist->GetBinError( bin0 );
             eIdSf1 -= eIdSfHist->GetBinError( bin1 );
           }
@@ -1295,18 +1279,15 @@ int main(int argc, char* argv[]){
         if ( !(*trig_passed)[1] && !(*trig_passed)[2] ) continue;
 
         if (isMC) {
-          double muTrackSf = muTrackSfGraph->Eval(muon_eta[0]);
-
           int bin = muTrigSfHist->FindBin( fabs(muon_eta[0]), muon_pt[0]>muTrig_pT?muTrig_pT:muon_pt[0] );
           double muTrigSf = muTrigSfHist->GetBinContent( bin );
-          if      (muTrigSys == "UP")   muTrigSf += sqrt( muTrigSfHist->GetBinError( bin )*muTrigSfHist->GetBinError( bin ) + 0.01*muTrigSf*0.01*muTrigSf );
-          else if (muTrigSys == "DOWN") muTrigSf -= sqrt( muTrigSfHist->GetBinError( bin )*muTrigSfHist->GetBinError( bin ) + 0.01*muTrigSf*0.01*muTrigSf );
+          if      (uncert == "muTrigSysUP")   muTrigSf += sqrt( muTrigSfHist->GetBinError( bin )*muTrigSfHist->GetBinError( bin ) + 0.01*muTrigSf*0.01*muTrigSf );
+          else if (uncert == "muTrigSysDOWN") muTrigSf -= sqrt( muTrigSfHist->GetBinError( bin )*muTrigSfHist->GetBinError( bin ) + 0.01*muTrigSf*0.01*muTrigSf );
           if (muon_pt[0] < 53) muTrigSf=1;
 
-          weight *= muTrackSf * muTrigSf;
+          weight *= muTrigSf;
 
           FillHist1D("muTrigSf", muTrigSf, 1.);
-          FillHist1D("muTrackSf", muTrackSf, 1.);
         }
         v_cuts[trigCut].second += weight;  v_cuts_ptr->at(trigCut).second += weight;
 
@@ -1317,15 +1298,15 @@ int main(int argc, char* argv[]){
         if (isMC) {
           int bin = muIdSfHist->FindBin( fabs(muon_eta[0]), muon_pt[0]>muId_pT?muId_pT:muon_pt[0] );
           double muIdSf = muIdSfHist->GetBinContent( bin );
-          if      (muIdSys == "UP")   muIdSf += sqrt( muIdSfHist->GetBinError( bin )*muIdSfHist->GetBinError( bin ) + 0.02*muIdSf*0.02*muIdSf );
-          else if (muIdSys == "DOWN") muIdSf -= sqrt( muIdSfHist->GetBinError( bin )*muIdSfHist->GetBinError( bin ) + 0.02*muIdSf*0.02*muIdSf );
+          if      (uncert == "muIdSysUP")   muIdSf += muIdSfHist->GetBinError( bin );
+          else if (uncert == "muIdSysDOWN") muIdSf -= muIdSfHist->GetBinError( bin );
 
           double eRecoSf = eRecoSfHist->GetBinContent( eRecoSfHist->FindBin( ele_etaSupClust[0], ele_pt[0]>eReco_pT?eReco_pT:ele_pt[0] ) );
 
           bin = eIdSfHist->FindBin( ele_etaSupClust[0], ele_pt[0]>eId_pT?eId_pT:ele_pt[0] );
           double eIdSf = eIdSfHist->GetBinContent( bin );
-          if      (eleIdSys == "UP")   eIdSf += eIdSfHist->GetBinError( bin );
-          else if (eleIdSys == "DOWN") eIdSf -= eIdSfHist->GetBinError( bin );
+          if      (uncert == "eleIdSysUP")   eIdSf += eIdSfHist->GetBinError( bin );
+          else if (uncert == "eleIdSysDOWN") eIdSf -= eIdSfHist->GetBinError( bin );
 
           weight *= muIdSf * eRecoSf * eIdSf;
 
@@ -1400,8 +1381,8 @@ int main(int argc, char* argv[]){
       if (isMC) {
         rands[i] = rand->Uniform(1.);
 
-        if (jec=="UP" || jec=="DOWN") {
-          double sign = jec=="UP" ? +1. : -1 ;
+        if (uncert=="jecUP" || uncert=="jecDOWN") {
+          double sign = uncert=="jecUP" ? +1. : -1 ;
           jecUncert[era]->setJetEta( jet.Eta() );
           jecUncert[era]->setJetPt( jet.Pt() );
           double unc = jecUncert[era]->getUncertainty(true);
@@ -1415,8 +1396,8 @@ int main(int argc, char* argv[]){
 
         double jet_res = res_obj.getResolution( res_pars );
         Variation jer_sys = Variation::NOMINAL;
-        if (jer=="UP") jer_sys = Variation::UP;
-        else if (jer=="DOWN") jer_sys = Variation::DOWN;
+        if      (uncert=="jerUP")   jer_sys = Variation::UP;
+        else if (uncert=="jerDOWN") jer_sys = Variation::DOWN;
 
         double jet_ressf = ressf_obj.getScaleFactor( res_pars , jer_sys );
 
@@ -1490,13 +1471,13 @@ int main(int argc, char* argv[]){
     if( (lep0perp<15 && rmin0<0.4) || (lep1perp<15 && rmin1<0.4) ) continue;
     v_cuts[ptrelCut].second += weight;  v_cuts_ptr->at(ptrelCut).second += weight;
 
-    if (setSUMDRCut.Contains("ON",TString::kIgnoreCase) ) {
+    if (drCut.Contains("ON",TString::kIgnoreCase) ) {
       if (rmin0+rmin1 >= 2.) continue;
-      if (setSUMDRCut=="ONbt") { if (rmin0+rmin1 >= 1.) continue; }
-      if (setSUMDRCut=="ONnb") { if (rmin0+rmin1 < 1.)  continue; }
+      if (drCut=="ONbt") { if (rmin0+rmin1 >= 1.) continue; }
+      if (drCut=="ONnb") { if (rmin0+rmin1 < 1.)  continue; }
     }
-    else if (setSUMDRCut=="REVERSE") { if (rmin0+rmin1 < 2.) continue; }
-    v_cuts[dRCut].second += weight;  v_cuts_ptr->at(dRCut).second += weight;
+    else if (drCut=="REVERSE") { if (rmin0+rmin1 < 2.) continue; }
+    v_cuts[drEnumCut].second += weight;  v_cuts_ptr->at(drEnumCut).second += weight;
 
     sort(jet_index_corrpt.begin(), jet_index_corrpt.end(), sortJetPt);
     int jet0index = jet_index_corrpt[0].first, jet1index = jet_index_corrpt[1].first;
@@ -1825,9 +1806,14 @@ void setWeight(const string& wFile) {
   TString name = inName( inName.Last('/')+1, inName.Index('.')-inName.Last('/')-1 );
   if ( name.Contains("ttbar", TString::kIgnoreCase) ) {
 
-    if      (topPtWeight != "NOMINAL") name += "_topPtWeight" + topPtWeight;
-    else if (q2ttbar     != "NOMINAL") name += "_q2" + q2ttbar;
-    else if (pdf         != "NOMINAL") name += "_pdf" + pdf;
+    TString topPtWeight, q2ttbar, pdf;
+    if (uncert.Contains("topPtWeight")) topPtWeight = uncert=="topPtWeightUP"?"UP":"DOWN";
+    if (uncert.Contains("q2ttbar"))     q2ttbar = uncert=="q2ttbarUP"?"UP":"DOWN";
+    if (uncert.Contains("pdf"))         pdf = uncert=="pdfUP"?"UP":"DOWN";
+
+    if      ( topPtWeight!="" ) name += "_topPtWeight" + topPtWeight;
+    else if ( q2ttbar    !="" ) name += "_q2" + q2ttbar;
+    else if ( pdf        !="" ) name += "_pdf" + pdf;
 
     name.ReplaceAll("DOWN", "DN");
   }
@@ -1882,49 +1868,19 @@ void setPars(const string& parFile) {
       if (line == "true") isMC = true;
       else isMC = false;
     }
-    else if (var == "topPtWeight")   topPtWeight = line.data();
-    else if (var == "jec")           jec = line.data();
-    else if (var == "jer")           jer = line.data();
-    else if (var == "btagSF")        btagSF = line.data();
-    else if (var == "mistagSF")      mistagSF = line.data();
-    else if (var == "pileup")        pileup = line.data();
-    else if (var == "pdf")           pdf = line.data();
-    else if (var == "q2ttbar")       q2ttbar = line.data();
-    else if (var == "muTrigSys")     muTrigSys = line.data();
-    else if (var == "muIdSys")       muIdSys = line.data();
-    else if (var == "eleTrigSys")    eleTrigSys = line.data();
-    else if (var == "eleIdSys")      eleIdSys = line.data();
-    else if (var == "setSUMDRCut")   setSUMDRCut = line.data();
-    else if (var == "inName")        inName = line.data();
-    else if (var == "outName")       outName = line.data();
-    else if (var == "muTrigSfName") {
-      while ( (delim_pos = line.find(' ')) != -1) {
-        int col = line.find(':');
-        muTrigSfNames[line.substr(0, col).data()] = stod( line.substr(col+1, delim_pos-col-1) );
-        line.erase(0, delim_pos + 1);
-        while (line.at(0) == ' ') line.erase(0, 1);
-      }
-      int col = line.find(':');
-      muTrigSfNames[line.substr(0, col).data()] = stod( line.substr(col+1, delim_pos-col-1) );
-    }
-    else if (var == "muIdSfName") {
-      while ( (delim_pos = line.find(' ')) != -1) {
-        int col = line.find(':');
-        muIdSfNames[line.substr(0, col).data()] = stod( line.substr(col+1, delim_pos-col-1) );
-        line.erase(0, delim_pos + 1);
-        while (line.at(0) == ' ') line.erase(0, 1);
-      }
-      int col = line.find(':');
-      muIdSfNames[line.substr(0, col).data()] = stod( line.substr(col+1, delim_pos-col-1) );
-    }
-    else if (var == "muTrackSfName") muTrackSfName = line.data();
-    else if (var == "eTrigSfName")   eTrigSfName = line.data();
-    else if (var == "eRecoSfName")   eRecoSfName = line.data();
-    else if (var == "eIdSfName")     eIdSfName = line.data();
-    else if (var == "btagName")      btagName = line.data();
-    else if (var == "pileupName")    pileupName = line.data();
-    else if (var == "channel")       channel = line;
-    else if (var == "res_era")       res_era = line;
+    else if (var == "uncert")       uncert = line;
+    else if (var == "drCut")        drCut = line;
+    else if (var == "inName")       inName = line;
+    else if (var == "outName")      outName = line;
+    else if (var == "muTrigSfName") muTrigSfName = line;
+    else if (var == "muIdSfName")   muIdSfName = line;
+    else if (var == "eTrigSfName")  eTrigSfName = line;
+    else if (var == "eRecoSfName")  eRecoSfName = line;
+    else if (var == "eIdSfName")    eIdSfName = line;
+    else if (var == "btagName")     btagName = line;
+    else if (var == "pileupName")   pileupName = line;
+    else if (var == "channel")      channel = line;
+    else if (var == "res_era")      res_era = line;
     else if (var == "eras") {
       while ( (delim_pos = line.find(' ')) != -1) {
         eras.push_back( line.substr(0, delim_pos) );
@@ -1954,8 +1910,8 @@ bool newBTag( const float& coin, const float& pT, const int& flavor, const bool&
 
   //b or c jet
   //if ( abs(flavor) == 4 || abs(flavor) == 5 ) sf = 0.561694*((1.+(0.31439*pT))/(1.+(0.17756*pT)));   //medium SFs
-  if ( abs(flavor) == 4 || abs(flavor) == 5 ) sf = 0.887973*((1.+(0.0523821*pT))/(1.+(0.0460876*pT))); //loose SFs, Run2016 BCDEFGH 
- 
+  if ( abs(flavor) == 4 || abs(flavor) == 5 ) sf = 0.887973*((1.+(0.0523821*pT))/(1.+(0.0460876*pT))); //loose SFs, Run2016 BCDEFGH
+
   //udsg
   //else sf = 1.06175-0.000462017*pT+1.02721e-06*pT*pT-4.95019e-10*pT*pT*pT;  //medium SFs
   //else sf = 1.15507+-0.00116691*pT+3.13873e-06*pT*pT+-2.14387e-09*pT*pT*pT; //loose SFs, Run2016 GH
@@ -2049,10 +2005,10 @@ bool newBTag( const float& coin, const float& pT, const int& flavor, const bool&
       cout << " ====================================" << endl;
       cout << " mt1 mt2 mt " << mt1 << " " << mt2 << " " << mt << endl ;
       if(setMin>mt){
-        setMin = mt;  
+        setMin = mt;
         K1f = K1;
         K2f = K2;
-      }  
+      }
     }
   }
   return setMin;
@@ -2060,7 +2016,7 @@ bool newBTag( const float& coin, const float& pT, const int& flavor, const bool&
 
 double MT2grid(const TLorentzVector& Pb1,const TLorentzVector& Pl1, const TLorentzVector& Pb2,const TLorentzVector& Pl2,
                const TLorentzVector& K, TLorentzVector& K1f, TLorentzVector& K2f){
-  
+
   int nsteps = int((rangexy[1]-rangexy[0])/step);
   TLorentzVector P1 = Pb1 + Pl1;
   TLorentzVector P2 = Pb2 + Pl2;
@@ -2097,10 +2053,10 @@ double MT2grid(const TLorentzVector& Pb1,const TLorentzVector& Pl1, const TLoren
       cout << " ====================================" << endl;
       cout << " mt1 mt2 mt " << mt1 << " " << mt2 << " " << mt << endl ;*/
       if(setMin>mt){
-        setMin = mt;  
+        setMin = mt;
         K1f = K1;
         K2f = K2;
-      }  
+      }
     }
   }
   return setMin;
@@ -2137,8 +2093,8 @@ void kL_calculator(const TLorentzVector& Pb, const TLorentzVector& Pl, const dou
     KL_roots[1] = (1/ET_vis2) * ( term1 - (term2*term3)  );
   }
   else{
-    KL_roots[0] = -999999; 
-    KL_roots[1] = -999999; 
+    KL_roots[0] = -999999;
+    KL_roots[1] = -999999;
   }
 }
 void kL_calculator_Wmass(const TLorentzVector& Pl, const double KT[2], double KL_roots[2]){
@@ -2150,7 +2106,7 @@ void kL_calculator_Wmass(const TLorentzVector& Pl, const double KT[2], double KL
   double term_2 = ( pow(Pl.E(),2)*nu_pT_sq ) - ( pow(K_term,2) );
   double det = pow((K_term * Pl.Pz()),2) - (term_1 * term_2);
   if (det < 0.){
-    KL_roots[0] = -999999; 
+    KL_roots[0] = -999999;
     KL_roots[1] = -999999;
   }
   else {
@@ -2159,4 +2115,4 @@ void kL_calculator_Wmass(const TLorentzVector& Pl, const double KT[2], double KL
     KL_roots[0] = double(numerator_plus)/term_1;
     KL_roots[1] = double(numerator_minus)/term_1;
   }
-}  
+}

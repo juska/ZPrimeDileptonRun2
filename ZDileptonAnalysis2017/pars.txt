@@ -1,3 +1,15 @@
 isMC           true
-inName         root://131.225.204.161:1094//store/user/broozbah/ZDileptonic2017/MC/gkk/RSGluonToTT_M-3000_TuneCUETP8M1_13TeV-pythia8/crab_gkk/181104_012955/0000/gkk.root
-
+inName         root://131.225.204.161:1094//store/user/cihar29/2017Analysis_trees/TTjets.root
+outName        OFF/mm/TTjets_mm.root
+drCut          OFF
+channel        mm
+eras           Fall17_17Nov2017_V32_MC
+jet_type       AK4PFchs
+res_era        Fall17_V3_MC
+muTrigSfName   /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/EfficienciesAndSF_RunBtoF_Nov17Nov2017.root
+muIdSfName     /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/RunBCDEF_SF_ID_syst.root
+eTrigSfName    eTrigSF
+eRecoSfName    eRecoSF
+eIdSfName      eIdSF
+btagName       btag
+pileupName     pileup
