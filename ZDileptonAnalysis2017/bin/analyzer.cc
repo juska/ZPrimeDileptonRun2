@@ -152,10 +152,12 @@ int main(int argc, char* argv[]){
   //Reweighting and SF Files//
 
   TH1F* pileup_weights=0;
-  TH2F* muTrigSfHist=0, *muIdSfHist=0, *eTrigSfHist=0, *eRecoSfHist=0, *eIdSfHist=0;
+  TH2F* muTrigSfHist=0, *muIdSfHist=0;
+  TH2F* eTrigSfHist=0, *eRecoSfHist=0, *eIdSfHist=0;
   TGraphAsymmErrors *btag_eff_b=0, *btag_eff_c=0, *btag_eff_udsg=0;
 
-  float muTrig_pT=0, muId_pT=0, eTrig_pT=0, eReco_pT=0, eId_pT=0;
+  float muTrig_pT=0, muId_pT=0;
+  float eTrig_pT=0, eReco_pT=0, eId_pT=0;
 
   if (isMC) {
     TFile* muTrigSfFile = TFile::Open(muTrigSfName);
@@ -177,6 +179,7 @@ int main(int argc, char* argv[]){
     TFile* eIdSfFile = TFile::Open(eIdSfName);
     if (!eIdSfFile) return -1;
     eIdSfHist = (TH2F*) eIdSfFile->Get("EGamma_SF2D");
+
 
     muTrig_pT = muTrigSfHist->GetYaxis()->GetBinCenter(muTrigSfHist->GetYaxis()->GetNbins());
     muId_pT = muIdSfHist->GetYaxis()->GetBinCenter(muIdSfHist->GetYaxis()->GetNbins());
