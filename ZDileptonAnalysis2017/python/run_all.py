@@ -91,9 +91,9 @@ def writePars( isMC, inDir, fname, drcut, channel, eras, uncert="" ) :
     lines.append( "res_era        Fall17_V3_MC" )
     lines.append( "muTrigSfName   /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/EfficienciesAndSF_RunBtoF_Nov17Nov2017.root" )
     lines.append( "muIdSfName     /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/RunBCDEF_SF_ID_syst.root" )
-    lines.append( "eTrigSfName    eTrigSF" )
-    lines.append( "eRecoSfName    eRecoSF" )
-    lines.append( "eIdSfName      eIdSF" )
+    lines.append( "eTrigSfName    /uscms_data/d3/cihar29/Analysis/CMSSW_8_0_30/src/analysis/ZDilepton/electronTrigSF.root" )
+    lines.append( "eRecoSfName    /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.roo" )
+    lines.append( "eIdSfName      /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/2017_ElectronTight.root" )
     lines.append( "btagName       btag" )
     lines.append( "pileupName     /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/mu_weights.root" )
   if uncert != "" :
