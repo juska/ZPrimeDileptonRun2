@@ -65,8 +65,8 @@ const int MAXLEP = 20;
 const int MAXGEN = 20;
 const float MUONMASS = 0.10566;
 const float ELEMASS = 0.;
-const float btagWP_L = 0.5426;
-const float btagWP_M = 0.8484;
+const float btagWP_L = 0.1522;
+const float btagWP_M = 0.4941;
 //const double beginx = -500;
 //const double beginy = -500;
 //const double step = 1;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]){
   TH1F* pileup_weights=0;
   TH2F* muTrigSfHist=0, *muIdSfHist=0;
   TH2F* eTrigSfHist=0, *eRecoSfHist=0, *eIdSfHist=0;
-  TGraphAsymmErrors *btag_eff_b=0, *btag_eff_c=0, *btag_eff_udsg=0;
+//  TGraphAsymmErrors *btag_eff_b=0, *btag_eff_c=0, *btag_eff_udsg=0;
 
   float muTrig_pT=0, muId_pT=0;
   float eTrig_pT=0, eReco_pT=0, eId_pT=0;
@@ -163,36 +163,40 @@ int main(int argc, char* argv[]){
     TFile* muTrigSfFile = TFile::Open(muTrigSfName);
     if (!muTrigSfFile) return -1;
     muTrigSfHist = (TH2F*) muTrigSfFile->Get("Mu50_PtEtaBins/abseta_pt_ratio");
+    if (!muTrigSfHist) {cout << "muTrigSfHist not found" << endl;  return -1;}
 
     TFile* muIdSfFile = TFile::Open(muIdSfName);
     if (!muIdSfFile) return -1;
     muIdSfHist = (TH2F*) muIdSfFile->Get("NUM_TightID_DEN_genTracks_pt_abseta");
+    if (!muIdSfHist) {cout << "muIdSfHist not found" << endl;  return -1;}
 
     TFile* eTrigSfFile = TFile::Open(eTrigSfName);
     if (!eTrigSfFile) return -1;
     eTrigSfHist = (TH2F*) eTrigSfFile->Get("tight_ScaleFactor");
+    if (!eTrigSfHist) {cout << "eTrigSfHist not found" << endl;  return -1;}
 
     TFile* eRecoSfFile = TFile::Open(eRecoSfName);
     if (!eRecoSfFile) return -1;
     eRecoSfHist = (TH2F*) eRecoSfFile->Get("EGamma_SF2D");
+    if (!eRecoSfHist) {cout << "eRecoSfHist not found" << endl;  return -1;}
 
     TFile* eIdSfFile = TFile::Open(eIdSfName);
     if (!eIdSfFile) return -1;
     eIdSfHist = (TH2F*) eIdSfFile->Get("EGamma_SF2D");
-
+    if (!eIdSfHist) {cout << "eIdSfHist not found" << endl;  return -1;}
 
     muTrig_pT = muTrigSfHist->GetYaxis()->GetBinCenter(muTrigSfHist->GetYaxis()->GetNbins());
-    muId_pT = muIdSfHist->GetYaxis()->GetBinCenter(muIdSfHist->GetYaxis()->GetNbins());
+    muId_pT = muIdSfHist->GetXaxis()->GetBinCenter(muIdSfHist->GetXaxis()->GetNbins());
     eTrig_pT = eTrigSfHist->GetYaxis()->GetBinLowEdge(eTrigSfHist->GetYaxis()->GetNbins());
     eReco_pT = eRecoSfHist->GetYaxis()->GetBinCenter(eRecoSfHist->GetYaxis()->GetNbins());
     eId_pT = eIdSfHist->GetYaxis()->GetBinCenter(eIdSfHist->GetYaxis()->GetNbins());
-
+/*
     TFile* btagFile = TFile::Open(btagName);
     if (!btagFile) return -1;
     btag_eff_b = (TGraphAsymmErrors*) btagFile->Get( Form("%s/b_LWP_%s", channel.data(), channel.data()) );
     btag_eff_c = (TGraphAsymmErrors*) btagFile->Get( Form("%s/c_LWP_%s", channel.data(), channel.data()) );
     btag_eff_udsg = (TGraphAsymmErrors*) btagFile->Get( Form("%s/udsg_LWP_%s", channel.data(), channel.data()) );
-
+*/
     TFile* pileupFile = TFile::Open(pileupName);
     if (!pileupFile) return -1;
     TString pileup = "NOMINAL";
@@ -200,7 +204,6 @@ int main(int argc, char* argv[]){
 
     TIter nextHist(pileupFile->GetDirectory(pileup)->GetListOfKeys());
     TKey* histKey;
-    TString name = inName( inName.Last('/')+1, inName.Index('.')-inName.Last('/')-1 );
     while ( (histKey = (TKey*)nextHist()) ) {
       TString keyname = histKey->GetName();
 
@@ -209,6 +212,7 @@ int main(int argc, char* argv[]){
         break;
       }
     }
+    if (!pileup_weights) {cout << "pileup_weights hist not found" << endl;  return -1;}
   }
 
   //Skims and Cuts//
@@ -269,7 +273,7 @@ int main(int argc, char* argv[]){
   if (uncert.Contains("mistagSF")) mistagSF = uncert=="mistagSFUP"?"UP":"DOWN";
 
   //Histograms//
-  TString hname;
+/*  TString hname;
   hname = Form("cosTheta+");
   m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
   hname = Form("cosTheta-");
@@ -423,9 +427,7 @@ int main(int argc, char* argv[]){
   hname = "h2_antinu_pz_root0_over_pzgen_VS_antinu_pz_root1_over_pzgen";
   m_Histos2D[hname] = new TH2D(hname,hname,100,-10,10,100,-10,10);
 
-
-
-  /*int nDirs = 8;
+  int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
     TString hname = Form("%i_nJet",i);
     m_Histos1D[hname] = new TH1D(hname,hname,MAXJET,0,MAXJET);
@@ -548,7 +550,7 @@ int main(int argc, char* argv[]){
     hname = Form("%i_nPV",i);
     m_Histos1D[hname] = new TH1D(hname,hname,100,0,100);
   }
-
+*/
   TString hname = "muTrigSf";
   m_Histos1D[hname] = new TH1D(hname,hname,200,0.5,1.5);
   hname = "muIdSf";
@@ -621,10 +623,8 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,2000);
   hname = "tbar_pt";
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,2000);
-  */
+
   //Set Branches//
-
-
 
   ULong64_t event;
   int run, nPV;
@@ -706,7 +706,8 @@ int main(int argc, char* argv[]){
   int nJet=MAXJET;
   int jet_hadflavor[nJet];
   float jet_eta[nJet], jet_phi[nJet], jet_pt[nJet], jet_mass[nJet], jet_area[nJet];
-  float jet_btag[nJet], jet_nhf[nJet], jet_nef[nJet], jet_chf[nJet], jet_muf[nJet], jet_elef[nJet], jet_numneutral[nJet], jet_chmult[nJet];
+  float jet_btag_deepcsvprobb[nJet], jet_btag_deepcsvprobbb[nJet];
+  float jet_nhf[nJet], jet_nef[nJet], jet_chf[nJet], jet_muf[nJet], jet_elef[nJet], jet_numneutral[nJet], jet_chmult[nJet];
   char jet_clean[nJet];
 
   T->SetBranchAddress("nJet", &nJet);
@@ -717,7 +718,8 @@ int main(int argc, char* argv[]){
   T->SetBranchAddress("jet_area", jet_area);
   T->SetBranchAddress("jet_clean", jet_clean);
 
-  T->SetBranchAddress("jet_btag", jet_btag);
+  T->SetBranchAddress("jet_btag_deepcsvprobb", jet_btag_deepcsvprobb);
+  T->SetBranchAddress("jet_btag_deepcsvprobbb", jet_btag_deepcsvprobbb);
   T->SetBranchAddress("jet_nhf", jet_nhf);
   T->SetBranchAddress("jet_nef", jet_nef);
   T->SetBranchAddress("jet_chf", jet_chf);
@@ -749,12 +751,14 @@ int main(int argc, char* argv[]){
   int sameRlepjet=0;
   time_t start = time(NULL);
 
-  for (Long64_t n=0; n<100000; n++) {
+  for (Long64_t n=0; n<nEntries; n++) {
 
     T->GetEntry(n);
     TLorentzVector lep0, lep1;
     weight = weight0;
+
     if (isMC) {
+/*
       TLorentzVector TOP,  LEPfromTOP,  BfromTOP,  NUfromTOP ;                  // top and it's decay particles
       TLorentzVector ANTITOP,  LEPfromANTITOP,  BfromANTITOP, NUfromANTITOP ;   // antitop and it's decay particles
       TLorentzVector NUtotal;                                                   // nu+nubar system
@@ -862,7 +866,7 @@ int main(int argc, char* argv[]){
           double NU1_gen_xy_Zroots_Wmass[2];
           double NU2_gen_xy[2];
           double NU2_gen_xy_Zroots_Wmass[2];
-          
+
           NU1_gen_xy[0] = NUfromTOP.Px();
           NU1_gen_xy[1] = NUfromTOP.Py();
           kL_calculator_Wmass(LEPfromTOP, NU1_gen_xy, NU1_gen_xy_Zroots_Wmass);
@@ -1088,8 +1092,8 @@ int main(int argc, char* argv[]){
 
         }
       }
-
-      /*weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
+*/
+      weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
 
       //topPt, pdf, and q2 reweighting - only affect ttbar
       if ( inName.Contains("ttbar", TString::kIgnoreCase) ) {
@@ -1122,7 +1126,7 @@ int main(int argc, char* argv[]){
         if      (uncert == "q2ttbarUP")   weight *= TMath::MaxElement(wgt_env->size(), &wgt_env->at(0));
         else if (uncert == "q2ttbarDOWN") weight *= TMath::MinElement(wgt_env->size(), &wgt_env->at(0));
       }
-
+/*
       //leptonic, semi-leptonic, or hadronic channel from gen information
       if (inName.Contains("ttbar", TString::kIgnoreCase) || inName.Contains("gluon", TString::kIgnoreCase) || inName.Contains("zprime", TString::kIgnoreCase)) {
         TString w_indices = "";
@@ -1138,7 +1142,7 @@ int main(int argc, char* argv[]){
       }
 */
     }
-    /*if (channel == "mm") {
+    if (channel == "mm") {
       if (lep0flavor == 'm' && lep1flavor == 'm') {
         v_cuts[channelCut].second += weight;  v_cuts_ptr->at(channelCut).second += weight;
 
@@ -1173,8 +1177,8 @@ int main(int argc, char* argv[]){
         if (fabs(muon_eta[0]) > 2.4 || fabs(muon_eta[1]) > 2.4) continue;
 
         if (isMC) {
-          int bin0 = muIdSfHist->FindBin( fabs(muon_eta[0]), muon_pt[0]>muId_pT?muId_pT:muon_pt[0] );
-          int bin1 = muIdSfHist->FindBin( fabs(muon_eta[1]), muon_pt[1]>muId_pT?muId_pT:muon_pt[1] );
+          int bin0 = muIdSfHist->FindBin( muon_pt[0]>muId_pT?muId_pT:muon_pt[0], fabs(muon_eta[0]) );
+          int bin1 = muIdSfHist->FindBin( muon_pt[1]>muId_pT?muId_pT:muon_pt[1], fabs(muon_eta[1]) );
 
           double muIdSf0 = muIdSfHist->GetBinContent( bin0 );
           double muIdSf1 = muIdSfHist->GetBinContent( bin1 );
@@ -1307,7 +1311,7 @@ int main(int argc, char* argv[]){
         if (fabs(muon_eta[0]) > 2.4 || fabs(ele_eta[0]) > 2.5) continue;
 
         if (isMC) {
-          int bin = muIdSfHist->FindBin( fabs(muon_eta[0]), muon_pt[0]>muId_pT?muId_pT:muon_pt[0] );
+          int bin = muIdSfHist->FindBin( muon_pt[0]>muId_pT?muId_pT:muon_pt[0], fabs(muon_eta[0]) );
           double muIdSf = muIdSfHist->GetBinContent( bin );
           if      (uncert == "muIdSysUP")   muIdSf += muIdSfHist->GetBinError( bin );
           else if (uncert == "muIdSysDOWN") muIdSf -= muIdSfHist->GetBinError( bin );
@@ -1371,7 +1375,7 @@ int main(int argc, char* argv[]){
       //loose jet cut
       if (fabs(jet_eta[i]) <= 2.7) {
         if (jet_nhf[i]>=0.99 || jet_nef[i]>=0.99 || (jet_numneutral[i]+jet_chmult[i])<=1) continue;
-        if (fabs(jet_eta[i]) <= 2.4 && ( jet_chf[i]<=0 || jet_chmult[i]<=0 || jet_elef[i]>=0.99 )) continue;
+        if (fabs(jet_eta[i]) <= 2.5 && ( jet_chf[i]<=0 || jet_chmult[i]<=0 || jet_elef[i]>=0.99 )) continue;
       }
       else if (2.7 < fabs(jet_eta[i]) && fabs(jet_eta[i]) <= 3.0) {
         if (jet_nhf[i]>=0.98 || jet_nef[i]<=0.01 || jet_numneutral[i]<=2) continue;
@@ -1466,7 +1470,7 @@ int main(int argc, char* argv[]){
         if (jet_clean[i] == 'l' || jet_clean[i] == 'b') { rl0cleanj = lep0.DeltaR(jet); cleanjet0pt = jet.Pt(); }
         if (jet_clean[i] == 's' || jet_clean[i] == 'b') { rl1cleanj = lep1.DeltaR(jet); cleanjet1pt = jet.Pt(); }
 
-        if (jet.Pt()>30 && fabs(jet_eta[i])<2.4) {
+        if (jet.Pt()>30 && fabs(jet_eta[i])<2.5) {
           jet_index_corrpt.push_back( make_pair(i, jet.Pt()) );
           hT+=jet.Pt();
         }
@@ -1514,8 +1518,8 @@ int main(int argc, char* argv[]){
     int nGoodEle=0;
     for (int i=0; i<nEle; i++) { if (ele_TightID[i]) nGoodEle++; }
 
-    bool jet0btag = jet_btag[jet0index] > btagWP_L;
-    bool jet1btag = jet_btag[jet1index] > btagWP_L;
+    bool jet0btag = jet_btag_deepcsvprobb[jet0index]+jet_btag_deepcsvprobbb[jet0index] > btagWP_L;
+    bool jet1btag = jet_btag_deepcsvprobb[jet1index]+jet_btag_deepcsvprobbb[jet1index] > btagWP_L;
 
     int jetflavor0=-25, jetflavor1=-25;
     if (isMC) {
@@ -1525,8 +1529,8 @@ int main(int argc, char* argv[]){
       //btag eff for two jets
       if (jet1pt > 50) {
 
-        bool jet0btagM = jet_btag[jet0index] > btagWP_M;
-        bool jet1btagM = jet_btag[jet1index] > btagWP_M;
+        bool jet0btagM = jet_btag_deepcsvprobb[jet0index]+jet_btag_deepcsvprobbb[jet0index] > btagWP_M;
+        bool jet1btagM = jet_btag_deepcsvprobb[jet1index]+jet_btag_deepcsvprobbb[jet1index] > btagWP_M;
 
         TString jetflavor0str, jetflavor1str;
         if      ( abs(jetflavor0) == 4 ) jetflavor0str = "c";
@@ -1576,6 +1580,7 @@ int main(int argc, char* argv[]){
           if (jet1btagM) FillHist2D("jetPtDR_bTagM_"+jetflavor1str, jet1dr, jet1pt, 1.);
         }
       }
+/*
       TString variation0 = btagSF, variation1 = btagSF;
       TGraphAsymmErrors* eff0, *eff1;
       if ( abs(jetflavor0) == 4 ) eff0 = btag_eff_c;
@@ -1588,8 +1593,10 @@ int main(int argc, char* argv[]){
 
       jet0btag = newBTag( rands[jet0index], jet0pt, jetflavor0, jet0btag, *eff0, variation0 );
       jet1btag = newBTag( rands[jet1index], jet1pt, jetflavor1, jet1btag, *eff1, variation1 );
+*/
     }
     delete rand;
+continue;
 
     double rl0l1 = lep0.DeltaR(lep1);
     double lepept=0, lepmpt=0;
@@ -1680,12 +1687,12 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"jet0pt", jet0.Pt(), weight);
     FillHist1D(prefix+"jet0eta", jet0.Eta(), weight);
     FillHist1D(prefix+"jet0phi", jet0.Phi(), weight);
-    FillHist1D(prefix+"jet0btag", jet_btag[jet0index], weight);
+    FillHist1D(prefix+"jet0btag", jet_btag_deepcsvprobb[jet0index]+jet_btag_deepcsvprobbb[jet0index], weight);
     FillHist1D(prefix+"jetflavor", jetflavor0, weight);
     FillHist1D(prefix+"jet1pt", jet1.Pt(), weight);
     FillHist1D(prefix+"jet1eta", jet1.Eta(), weight);
     FillHist1D(prefix+"jet1phi", jet1.Phi(), weight);
-    FillHist1D(prefix+"jet1btag", jet_btag[jet1index], weight);
+    FillHist1D(prefix+"jet1btag", jet_btag_deepcsvprobb[jet1index]+jet_btag_deepcsvprobbb[jet1index], weight);
     FillHist1D(prefix+"jetflavor", jetflavor1, weight);
     FillHist1D(prefix+"nbtag", int(jet0btag)+int(jet1btag), weight);
 
@@ -1716,7 +1723,7 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"dphi_jet0met", fabs( deltaPhi( jet0.Phi(), met.Phi() ) ), weight);
     FillHist1D(prefix+"dphi_jet1met", fabs( deltaPhi( jet1.Phi(), met.Phi() ) ), weight);
 
-    FillHist1D(prefix+"nPV", nPV, weight);*/
+    FillHist1D(prefix+"nPV", nPV, weight);
   }
   cout << difftime(time(NULL), start) << " s" << endl;
   cout << "Min_jet0 = Min_jet1: " << sameRlepjet << endl;
@@ -1765,7 +1772,7 @@ int main(int argc, char* argv[]){
   cout << endl;
   */
   //Write Histograms//
-  outName = name + "_analyzed.root";
+
   TFile* outFile = new TFile(outName,"RECREATE");
   outFile->cd();
 
@@ -1789,8 +1796,6 @@ int main(int argc, char* argv[]){
   outFile->Write();
   delete outFile;
   outFile = 0;
-  
-
 }
 
 void FillHist1D(const TString& histName, const Double_t& value, const double& weight) {
@@ -1814,7 +1819,7 @@ void setWeight(const string& wFile) {
   ifstream file(wFile);
   string line;
 
-  TString name = inName( inName.Last('/')+1, inName.Index('.')-inName.Last('/')-1 );
+  TString name = inName( inName.Last('/')+1, inName.Last('.')-inName.Last('/')-1 );
   if ( name.Contains("ttbar", TString::kIgnoreCase) ) {
 
     TString topPtWeight, q2ttbar, pdf;
@@ -1919,45 +1924,45 @@ double rms_pm(const vector<float>& vec) {
 bool newBTag( const float& coin, const float& pT, const int& flavor, const bool& oldBTag, TGraphAsymmErrors& g_eff, const TString& variation ) {
   double sf=0;
 
-  //b or c jet
-  //if ( abs(flavor) == 4 || abs(flavor) == 5 ) sf = 0.561694*((1.+(0.31439*pT))/(1.+(0.17756*pT)));   //medium SFs
-  if ( abs(flavor) == 4 || abs(flavor) == 5 ) sf = 0.887973*((1.+(0.0523821*pT))/(1.+(0.0460876*pT))); //loose SFs, Run2016 BCDEFGH
+  //c or b jet
+  if ( abs(flavor) == 4 || abs(flavor) == 5 )
+    sf = 1.0942+(-1*(0.00468151*(log(pT+19)*(log(pT+18)*(3-(0.365115*log(pT+18))))))); //loose 94X
+//    sf = 2.22144*((1.+(0.540134*x))/(1.+(1.30246*x)));                               //medium 94X
 
   //udsg
-  //else sf = 1.06175-0.000462017*pT+1.02721e-06*pT*pT-4.95019e-10*pT*pT*pT;  //medium SFs
-  //else sf = 1.15507+-0.00116691*pT+3.13873e-06*pT*pT+-2.14387e-09*pT*pT*pT; //loose SFs, Run2016 GH
-  else sf = 1.12626+-0.000198068*pT+1.29872e-06*pT*pT+-1.00905e-09*pT*pT*pT;  //loose SFs, Run2016 BCDEF
+  else sf = 1.07073+0.000128481*pT+6.16477e-07*pT*pT+-5.65803e-10*pT*pT*pT;            //loose 94X
+//  else sf = 0.972902+0.000201811*pT+3.96396e-08*pT*pT+-4.53965e-10*pT*pT*pT;         //medium 94X
 
   if (variation=="UP" || variation=="DOWN") {
     double sign = (variation=="UP") ? +1.: -1.;
 
     if (abs(flavor) == 4) {
-       if (pT<30.)        sf += sign*0.063454590737819672 ;
-       else if (pT<50.)   sf += sign*0.031410016119480133 ;
-       else if (pT<70.)   sf += sign*0.02891194075345993  ;
-       else if (pT<100.)  sf += sign*0.028121808543801308 ;
-       else if (pT<140.)  sf += sign*0.027028990909457207 ;
-       else if (pT<200.)  sf += sign*0.027206243947148323 ;
-       else if (pT<300.)  sf += sign*0.033642303198575974 ;
-       else if (pT<600.)  sf += sign*0.04273652657866478  ;
-       else if (pT<1000.) sf += sign*0.054665762931108475 ;
-       else               sf += sign*0.054665762931108475 * 2. ; // double syst. above 1 TeV
+       if (pT<30.)        sf += sign*0.085154704749584198;
+       else if (pT<50.)   sf += sign*0.034145798534154892;
+       else if (pT<70.)   sf += sign*0.034354850649833679;
+       else if (pT<100.)  sf += sign*0.031172541901469231;
+       else if (pT<140.)  sf += sign*0.03231281042098999 ;
+       else if (pT<200.)  sf += sign*0.03636125847697258 ;
+       else if (pT<300.)  sf += sign*0.060606949031352997;
+       else if (pT<600.)  sf += sign*0.10067618638277054 ;
+       else if (pT<1000.) sf += sign*0.15710783004760742 ;
+       else               sf += sign*0.15710783004760742*2; // double syst. above 1 TeV
     }
     else if (abs(flavor) == 5) {
-       if (pT<30.)        sf += sign*0.025381835177540779 ;
-       else if (pT<50.)   sf += sign*0.012564006261527538 ;
-       else if (pT<70.)   sf += sign*0.011564776301383972 ;
-       else if (pT<100.)  sf += sign*0.011248723603785038 ;
-       else if (pT<140.)  sf += sign*0.010811596177518368 ;
-       else if (pT<200.)  sf += sign*0.010882497765123844 ;
-       else if (pT<300.)  sf += sign*0.013456921093165874 ;
-       else if (pT<600.)  sf += sign*0.017094610258936882 ;
-       else if (pT<1000.) sf += sign*0.02186630479991436  ;
-       else               sf += sign*0.02186630479991436 * 2. ; // double syst. above 1 TeV
+       if (pT<30.)        sf += sign*0.034061882644891739;
+       else if (pT<50.)   sf += sign*0.013658319599926472;
+       else if (pT<70.)   sf += sign*0.013741940259933472;
+       else if (pT<100.)  sf += sign*0.012469016946852207;
+       else if (pT<140.)  sf += sign*0.012925124727189541;
+       else if (pT<200.)  sf += sign*0.014544503763318062;
+       else if (pT<300.)  sf += sign*0.024242779240012169;
+       else if (pT<600.)  sf += sign*0.040270473808050156;
+       else if (pT<1000.) sf += sign*0.06284312903881073 ;
+       else               sf += sign*0.06284312903881073*2; // double syst. above 1 TeV
     }
     else {
-       if (pT<1000.) sf *= (1+sign*(0.100062-8.50875e-05*pT+4.8825e-08*pT*pT));
-       else          sf *= (1+sign*(0.100062-8.50875e-05*pT+4.8825e-08*pT*pT) * 2.) ; // double syst. above 1 TeV
+       if (pT<1000.) sf *= (1+sign*(0.0485052+3.93839e-05*pT+-4.90281e-08*pT*pT));
+       else          sf *= (1+sign*(0.0485052+3.93839e-05*pT+-4.90281e-08*pT*pT))*2; //double syst. above 1 TeV
     }
   }
 

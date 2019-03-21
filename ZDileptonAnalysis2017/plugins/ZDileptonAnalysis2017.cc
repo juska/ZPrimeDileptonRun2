@@ -43,7 +43,7 @@ bool sortLepPt(const pair<reco::CandidatePtr, char>& lep1, const pair<reco::Cand
 
 const int MAXJET = 50;
 const int nFilters = 9;
-const int MAXGEN = 20;
+const int MAXGEN = 30;
 const int MAXTOPLEP = 1;
 const int MAXLEP = 20;
 const int nTriggers = 10;
@@ -72,7 +72,7 @@ class ZDileptonAnalysis2017 : public edm::one::EDAnalyzer<edm::one::SharedResour
       vector<float> wgt_env, wgt_rep;
       ULong64_t event;
       int run, lumi, bx;
-      float rho, mu;
+      float rho, mu, mass_ttbar;
       int nPV, nPVall;
       char lep0flavor, lep1flavor;
 
@@ -248,6 +248,7 @@ void ZDileptonAnalysis2017::beginJob()
   tree->Branch("event", &event, "event/l");
   tree->Branch("rho", &rho, "rho/F");
   tree->Branch("mu", &mu, "mu/F");
+  tree->Branch("mass_ttbar", &mass_ttbar, "mass_ttbar/F");
   tree->Branch("nPV", &nPV, "nPV/I");
   tree->Branch("nPVall", &nPVall, "nPVall/I");
   tree->Branch("lep0flavor", &lep0flavor, "lep0flavor/B");
@@ -398,7 +399,6 @@ void ZDileptonAnalysis2017::analyze(const edm::Event& iEvent, const edm::EventSe
   event = iEvent.id().event();
 
  //------------ MC :topPt, pdf, and q2 ------------//
-  double mass_ttbar = 0;
   if (isMC_) {
     edm::Handle< edm::View<reco::GenParticle> > genParticles;
     iEvent.getByToken(genParticleTag_, genParticles);

@@ -1,6 +1,6 @@
 isMC           true
-inName         root://131.225.204.161:1094//store/user/cihar29/2017Analysis_trees/TTjets.root
-outName        OFF/mm/TTjets_mm.root
+inName         root://131.225.204.161:1094//store/user/cihar29/2017Analysis_trees/TTbar0-700.root
+outName        OFF/mm/TTbar0-700_mm.root
 drCut          OFF
 channel        mm
 eras           Fall17_17Nov2017_V32_MC
@@ -11,5 +11,5 @@ muIdSfName     /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnal
 eTrigSfName    /uscms_data/d3/cihar29/Analysis/CMSSW_8_0_30/src/analysis/ZDilepton/electronTrigSF.root
 eRecoSfName    /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root
 eIdSfName      /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/2017_ElectronTight.root
-btagName /uscms_data/d3/cihar29/Analysis/CMSSW_8_0_30/src/analysis/ZDilepton/btag_eff.root
-pileupName /uscms_data/d3/cihar29/Analysis/CMSSW_8_0_30/src/analysis/ZDilepton/mu_weights.root
+btagName       /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/btag_eff.root
+pileupName     /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/mu_weights.root

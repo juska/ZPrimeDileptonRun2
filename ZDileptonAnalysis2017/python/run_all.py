@@ -1,10 +1,11 @@
 #chad harrington 2019
-#execute as python python/run_all.py -drs OFF ON -c mm -uncerts jec pileup muIdSys --makePileupRewgtFile
+#execute as python -u python/run_all.py -drs OFF ON -c mm -uncerts jec pileup muIdSys --makePileupRewgtFile
 #default is all drCuts, all channels, and all uncertainties, but doesn't create pileup file
 import os
 import argparse
+import time
 from files import mcTups, dataDict
-from calculate_pileup import calc_pileup_default
+from calculate_pileup import calc_pileup
 from calculate_weights import calc
 
 drs_default = ["OFF", "ON", "ONbt", "ONnb", "REVERSE"]
@@ -27,14 +28,17 @@ def handleArgs() :
                        default=uncerts_default
                      )
   parser.add_argument( "--makePileupRewgtFile", action='store_true', required=False, help="If enabled, create the pileup reweighting root file" )
+  parser.add_argument( "--makeBtagFile",        action='store_true', required=False, help="If enabled, create the btag efficiency root file" )
   return parser.parse_args()
 
 def main() :
+  start = time.time()
 
   args = handleArgs()
-  #default is the following but give options for drs, channels, and uncerts: ignore if not found in one of these options
   if args.makePileupRewgtFile :
-    calc_pileup_default()
+    calc_pileup()
+  if args.makeBtagFile :
+    os.system( "root -l -b -q btag_efficiency.c" )
 
   drs = args.drCuts
   channels = args.channels
@@ -47,34 +51,44 @@ def main() :
   for p in periods :
     eras += era + p + "_V" + version + "_DATA "
 
-  #make timer
-
   for drcut in drs :
     if drcut not in drs_default : print drcut + " not found!"; continue
-#    os.system( "mkdir " + drcut )
-#    os.system( "mkdir " + drcut "/logs" )
-#quit if directory exists
+    if os.path.isdir( drcut ) : raise Exception(drcut + " directory already exists!")
+    os.system( "mkdir " + drcut )
+    os.system( "mkdir " + drcut + "/logs" )
+
     for channel in channels :
       if channel not in channels_default : print channel + " not found!"; continue
-#      os.system( "mkdir " + drcut + "/" + channel )
+      os.system( "mkdir " + drcut + "/" + channel )
 
       dataTup = dataDict[channel]
       writePars( "false", dataTup.dir, dataTup.name, drcut, channel, eras )
-#      os.system( "analyzer pars.txt > logs/log_" + dataTup.name + "_" + channel + ".txt" )
+      file = open( drcut + "/logs/log_" + channel + ".txt", "w+" )
+      file.write( os.popen( "analyzer pars.txt" ).read() )
+      file.flush()
 
-#      calc( dataTup.lumi )
+      calc( dataTup.lumi )
 
       for mcTup in mcTups :
+        print "Processing:", drcut, channel, mcTup.name
         writePars( "true", mcTup.dir, mcTup.name, drcut, channel, era+"_V"+version+"_MC" )
-#        os.system( "analyzer pars.txt mc_weights.txt > logs/log_" + mcTup.name + "_" + channel + ".txt" )
+        file.write( os.popen( "analyzer pars.txt mc_weights.txt" ).read() )
+        file.flush()
+      file.close()
 
-        for uncert in uncerts :
-          if uncert not in uncerts_default : print uncert + " not found!"; continue
-          for type in types :
+      for uncert in uncerts :
+        if uncert not in uncerts_default : print uncert + " not found!"; continue
+        for type in types :
+
+          file = open( drcut + "/logs/log_" + channel + "_" + uncert+type + ".txt", "w+" )
+          for mcTup in mcTups :
+            print "Processing:", drcut, channel, uncert+type, mcTup.name
             writePars( "true", mcTup.dir, mcTup.name, drcut, channel, era+"_V"+version+"_MC", uncert+type )
-#            os.system( "analyzer pars.txt mc_weights.txt > logs/log_" + mcTup.name + "_" + channel + "_" + uncert+type + ".txt" )
+            file.write( os.popen( "analyzer pars.txt mc_weights.txt" ).read() )
+            file.flush()
+          file.close()
 
-#   cat all logs together
+  print "{} seconds".format( time.time()-start )
 
 def writePars( isMC, inDir, fname, drcut, channel, eras, uncert="" ) :
 
@@ -92,14 +106,14 @@ def writePars( isMC, inDir, fname, drcut, channel, eras, uncert="" ) :
     lines.append( "muTrigSfName   /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/EfficienciesAndSF_RunBtoF_Nov17Nov2017.root" )
     lines.append( "muIdSfName     /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/RunBCDEF_SF_ID_syst.root" )
     lines.append( "eTrigSfName    /uscms_data/d3/cihar29/Analysis/CMSSW_8_0_30/src/analysis/ZDilepton/electronTrigSF.root" )
-    lines.append( "eRecoSfName    /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.roo" )
+    lines.append( "eRecoSfName    /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/egammaEffi.txt_EGM2D_runBCDEF_passingRECO.root" )
     lines.append( "eIdSfName      /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/2017_ElectronTight.root" )
-    lines.append( "btagName       btag" )
+    lines.append( "btagName       /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/btag_eff.root" )
     lines.append( "pileupName     /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/mu_weights.root" )
   if uncert != "" :
     lines.append( "uncert         %s" % uncert )
 
-  lines = "\n".join(lines)
+  lines = "\n".join(lines)+"\n"
 
   file = open( "pars.txt", "w+" )
   file.write( lines )

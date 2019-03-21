@@ -37,19 +37,14 @@ def main() :
                      )
   args = parser.parse_args()
 
-  mc = []
   if args.mcList is None : mc = mcList_default()
   else :                   mc = arg2List(args.mcList)
-  data = []
   if args.data is None : data = data_default()
   else :                 data = arg2List(args.data)
 
   calc_pileup( mc, data )
 
-def calc_pileup_default() :
-  calc_pileup( mcList_default(), data_default() )
-
-def calc_pileup( mcList, data ) :
+def calc_pileup( mcList=mcList_default(), data=data_default() ) :
 
   ddir, dname = data[0][0], data[0][1]
   wgts = ("NOMINAL", "UP", "DOWN")
