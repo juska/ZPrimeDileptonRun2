@@ -1,6 +1,7 @@
 #chad harrington 2019
-#execute as python -u python/run_all.py -drs OFF ON -c mm -uncerts jec pileup muIdSys --makePileupRewgtFile
-#default is all drCuts, all channels, and all uncertainties, but doesn't create pileup file
+#example: python python/run_all.py -drs OFF ON -c mm -uncerts jec pileup muIdSys --makePileupRewgtFile
+#run everything: python -u python/run_all.py > & log.txt &
+#simple tests: python -u python/run_all.py -drs ON -c mm --noUncerts > & log.txt &
 import os
 import argparse
 import time
@@ -29,6 +30,7 @@ def handleArgs() :
                      )
   parser.add_argument( "--makePileupRewgtFile", action='store_true', required=False, help="If enabled, create the pileup reweighting root file" )
   parser.add_argument( "--makeBtagFile",        action='store_true', required=False, help="If enabled, create the btag efficiency root file" )
+  parser.add_argument( "--noUncerts",           action='store_true', required=False, help="If enabled, do not run over any uncertainties" )
   return parser.parse_args()
 
 def main() :
@@ -43,6 +45,7 @@ def main() :
   drs = args.drCuts
   channels = args.channels
   uncerts = args.uncertainties
+  if args.noUncerts : uncerts = []
 
   era = "Fall17_17Nov2017"
   periods = ("B", "C", "DE", "F")
@@ -62,6 +65,7 @@ def main() :
       os.system( "mkdir " + drcut + "/" + channel )
 
       dataTup = dataDict[channel]
+      print "Processing:", drcut, channel, dataTup.name
       writePars( "false", dataTup.dir, dataTup.name, drcut, channel, eras )
       file = open( drcut + "/logs/log_" + channel + ".txt", "w+" )
       file.write( os.popen( "analyzer pars.txt" ).read() )

@@ -62,7 +62,7 @@ double weight0, weight;
 
 const int MAXJET = 50;
 const int MAXLEP = 20;
-const int MAXGEN = 20;
+const int MAXGEN = 30;
 const float MUONMASS = 0.10566;
 const float ELEMASS = 0.;
 const float btagWP_L = 0.1522;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]){
   TH1F* pileup_weights=0;
   TH2F* muTrigSfHist=0, *muIdSfHist=0;
   TH2F* eTrigSfHist=0, *eRecoSfHist=0, *eIdSfHist=0;
-//  TGraphAsymmErrors *btag_eff_b=0, *btag_eff_c=0, *btag_eff_udsg=0;
+  TGraphAsymmErrors *btag_eff_b=0, *btag_eff_c=0, *btag_eff_udsg=0;
 
   float muTrig_pT=0, muId_pT=0;
   float eTrig_pT=0, eReco_pT=0, eId_pT=0;
@@ -190,13 +190,13 @@ int main(int argc, char* argv[]){
     eTrig_pT = eTrigSfHist->GetYaxis()->GetBinLowEdge(eTrigSfHist->GetYaxis()->GetNbins());
     eReco_pT = eRecoSfHist->GetYaxis()->GetBinCenter(eRecoSfHist->GetYaxis()->GetNbins());
     eId_pT = eIdSfHist->GetYaxis()->GetBinCenter(eIdSfHist->GetYaxis()->GetNbins());
-/*
+
     TFile* btagFile = TFile::Open(btagName);
     if (!btagFile) return -1;
     btag_eff_b = (TGraphAsymmErrors*) btagFile->Get( Form("%s/b_LWP_%s", channel.data(), channel.data()) );
     btag_eff_c = (TGraphAsymmErrors*) btagFile->Get( Form("%s/c_LWP_%s", channel.data(), channel.data()) );
     btag_eff_udsg = (TGraphAsymmErrors*) btagFile->Get( Form("%s/udsg_LWP_%s", channel.data(), channel.data()) );
-*/
+
     TFile* pileupFile = TFile::Open(pileupName);
     if (!pileupFile) return -1;
     TString pileup = "NOMINAL";
@@ -426,7 +426,7 @@ int main(int argc, char* argv[]){
 
   hname = "h2_antinu_pz_root0_over_pzgen_VS_antinu_pz_root1_over_pzgen";
   m_Histos2D[hname] = new TH2D(hname,hname,100,-10,10,100,-10,10);
-
+*/
   int nDirs = 8;
   for (int i=0; i<nDirs; i++) {
     TString hname = Form("%i_nJet",i);
@@ -550,7 +550,7 @@ int main(int argc, char* argv[]){
     hname = Form("%i_nPV",i);
     m_Histos1D[hname] = new TH1D(hname,hname,100,0,100);
   }
-*/
+
   TString hname = "muTrigSf";
   m_Histos1D[hname] = new TH1D(hname,hname,200,0.5,1.5);
   hname = "muIdSf";
@@ -1580,7 +1580,7 @@ int main(int argc, char* argv[]){
           if (jet1btagM) FillHist2D("jetPtDR_bTagM_"+jetflavor1str, jet1dr, jet1pt, 1.);
         }
       }
-/*
+
       TString variation0 = btagSF, variation1 = btagSF;
       TGraphAsymmErrors* eff0, *eff1;
       if ( abs(jetflavor0) == 4 ) eff0 = btag_eff_c;
@@ -1593,10 +1593,8 @@ int main(int argc, char* argv[]){
 
       jet0btag = newBTag( rands[jet0index], jet0pt, jetflavor0, jet0btag, *eff0, variation0 );
       jet1btag = newBTag( rands[jet1index], jet1pt, jetflavor1, jet1btag, *eff1, variation1 );
-*/
     }
     delete rand;
-continue;
 
     double rl0l1 = lep0.DeltaR(lep1);
     double lepept=0, lepmpt=0;
@@ -1727,12 +1725,12 @@ continue;
   }
   cout << difftime(time(NULL), start) << " s" << endl;
   cout << "Min_jet0 = Min_jet1: " << sameRlepjet << endl;
-
-  /*TH1D* cuts = new TH1D("cuts","cuts",numCuts,-0.5,float(numCuts)-0.5);
+/*
+  TH1D* cuts = new TH1D("cuts","cuts",numCuts,-0.5,float(numCuts)-0.5);
   TH1D* ll_cuts = new TH1D("ll_cuts","ll_cuts",numCuts,-0.5,float(numCuts)-0.5);
   TH1D* lj_cuts = new TH1D("lj_cuts","lj_cuts",numCuts,-0.5,float(numCuts)-0.5);
   TH1D* jj_cuts = new TH1D("jj_cuts","jj_cuts",numCuts,-0.5,float(numCuts)-0.5);
-
+*/
   //Cutflow Table//
   cout<<"===================================================================================================\n";
   cout<<"                                     Cut Flow Table: " + inName( inName.Last('/')+1, inName.Index('.')-inName.Last('/')-1 ) + "\n";
@@ -1766,11 +1764,11 @@ continue;
     if (i==countMet || i==jetCut)
       cout << "---------------------------------------------------------------------------------------------------" << endl;
 
-    cuts->SetBinContent(i+1, v_cuts[i].second);        ll_cuts->SetBinContent(i+1, v_llcuts[i].second);      lj_cuts->SetBinContent(i+1, v_ljcuts[i].second);      jj_cuts->SetBinContent(i+1, v_jjcuts[i].second);
-    cuts->GetXaxis()->SetBinLabel(i+1,Form("%i",i+1)); ll_cuts->GetXaxis()->SetBinLabel(i+1,Form("%i",i+1)); lj_cuts->GetXaxis()->SetBinLabel(i+1,Form("%i",i+1)); jj_cuts->GetXaxis()->SetBinLabel(i+1,Form("%i",i+1));
+//    cuts->SetBinContent(i+1, v_cuts[i].second);        ll_cuts->SetBinContent(i+1, v_llcuts[i].second);      lj_cuts->SetBinContent(i+1, v_ljcuts[i].second);      jj_cuts->SetBinContent(i+1, v_jjcuts[i].second);
+//    cuts->GetXaxis()->SetBinLabel(i+1,Form("%i",i+1)); ll_cuts->GetXaxis()->SetBinLabel(i+1,Form("%i",i+1)); lj_cuts->GetXaxis()->SetBinLabel(i+1,Form("%i",i+1)); jj_cuts->GetXaxis()->SetBinLabel(i+1,Form("%i",i+1));
   }
   cout << endl;
-  */
+
   //Write Histograms//
 
   TFile* outFile = new TFile(outName,"RECREATE");
@@ -1778,7 +1776,7 @@ continue;
 
   //cuts->Write(); ll_cuts->Write(); lj_cuts->Write(); jj_cuts->Write();
 
-  //for (int i=0; i<nDirs; i++) outFile->mkdir( Form("%i/", i) );
+  for (int i=0; i<nDirs; i++) outFile->mkdir( Form("%i/", i) );
 
   for (map<TString, TH1*>::iterator hid = m_Histos1D.begin(); hid != m_Histos1D.end(); hid++) {
     outFile->cd();
@@ -1822,16 +1820,10 @@ void setWeight(const string& wFile) {
   TString name = inName( inName.Last('/')+1, inName.Last('.')-inName.Last('/')-1 );
   if ( name.Contains("ttbar", TString::kIgnoreCase) ) {
 
-    TString topPtWeight, q2ttbar, pdf;
-    if (uncert.Contains("topPtWeight")) topPtWeight = uncert=="topPtWeightUP"?"UP":"DOWN";
-    if (uncert.Contains("q2ttbar"))     q2ttbar = uncert=="q2ttbarUP"?"UP":"DOWN";
-    if (uncert.Contains("pdf"))         pdf = uncert=="pdfUP"?"UP":"DOWN";
-
-    if      ( topPtWeight!="" ) name += "_topPtWeight" + topPtWeight;
-    else if ( q2ttbar    !="" ) name += "_q2" + q2ttbar;
-    else if ( pdf        !="" ) name += "_pdf" + pdf;
-
-    name.ReplaceAll("DOWN", "DN");
+    if ( uncert.Contains("topPtWeight") || uncert.Contains("q2") || uncert.Contains("pdf") ) {
+      name += "_" + uncert;
+      name.ReplaceAll("DOWN", "DN");
+    }
   }
 
   while (getline(file, line)) {
@@ -1857,6 +1849,7 @@ void setWeight(const string& wFile) {
       break;
     }
   }
+  if (weight0 == -1) cout << "No weight found!" << endl;
   file.close();
 }
 

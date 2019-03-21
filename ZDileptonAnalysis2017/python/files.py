@@ -14,9 +14,9 @@ dataDict = {
 mcTuple = namedtuple('mcTuple', 'dir name xs nEvt')
 
 mcTups = (
-  mcTuple( chad,    'TTbar0-700',                      731209,      1 ), #waiting on updated TTJets sample
-  mcTuple( chad,    'TTbar700-1000_total',             80104.6,     1  ),
-  mcTuple( chad,    'TTbar1000-inf_total',             20446.8,     1  ),
+  mcTuple( chad,    'TTbar0-700',                      731209,      134082521 ),
+  mcTuple( chad,    'TTbar700-1000_total',             80104.6,     54645901  ),
+  mcTuple( chad,    'TTbar1000-inf_total',             20446.8,     24746283  ),
   mcTuple( chad,    'TTsemilep',                       453570,      41221873  ),
   mcTuple( chad,    'wjets',                           61526700,    77700506  ),
   mcTuple( chad,    'ww',                              118700,      7791498   ),
@@ -28,9 +28,6 @@ mcTups = (
   mcTuple( bahareh, 'ST_t-channel_antitop_4f',         80950,       3939990   ),
   mcTuple( bahareh, 'ST_tW_top_5f_inclusiveDecays_v2', 35850,       7794186   ),
   mcTuple( bahareh, 'ST_tW_antitop_5f_v2',             35850,       7363960   ),
-         )
-
-'''
   mcTuple( chad,    'qcd30to80_bcToE',                 405623400,   16030011  ),
   mcTuple( chad,    'qcd80to170_bcToE',                38104430,    15972037  ),
   mcTuple( chad,    'qcd170to250_bcToE',               2635813.32,  9831904   ),
@@ -44,22 +41,21 @@ mcTups = (
   mcTuple( bahareh, 'QCD_Pt-800to1000_MuEnrichedPt5',  4707.368272, 15694987  ),
   mcTuple( bahareh, 'QCD_Pt-1000toInf_MuEnrichedPt5',  1621.31692,  11596693  )
          )
-'''
 
-'''
-TTbar0-700_topPtWeightUP  726395
-TTbar700-1000_topPtWeightUP 83359.7
-TTbar1000-inf_topPtWeightUP 22005
-TTbar0-700_pdfUP  731083
-TTbar700-1000_pdfUP 80176.6
-TTbar1000-inf_pdfUP 20500.7
-TTbar0-700_pdfDN  731350
-TTbar700-1000_pdfDN 80022.6
-TTbar1000-inf_pdfDN 20386.9
-TTbar0-700_q2UP 727477
-TTbar700-1000_q2UP  82453.8
-TTbar1000-inf_q2UP  21829.3
-TTbar0-700_q2DN 734688
-TTbar700-1000_q2DN  77947.3
-TTbar1000-inf_q2DN  19124.2
-'''
+ttbar_wgts = (
+  ('TTbar0-700_topPtWeightUP',    726395  ),
+  ('TTbar700-1000_topPtWeightUP', 83359.7 ),
+  ('TTbar1000-inf_topPtWeightUP', 22005   ),
+  ('TTbar0-700_pdfUP',            731083  ),
+  ('TTbar700-1000_pdfUP',         80176.6 ),
+  ('TTbar1000-inf_pdfUP',         20500.7 ),
+  ('TTbar0-700_pdfDN',            731350  ),
+  ('TTbar700-1000_pdfDN',         80022.6 ),
+  ('TTbar1000-inf_pdfDN',         20386.9 ),
+  ('TTbar0-700_q2UP',             727477  ),
+  ('TTbar700-1000_q2UP',          82453.8 ),
+  ('TTbar1000-inf_q2UP',          21829.3 ),
+  ('TTbar0-700_q2DN',             734688  ),
+  ('TTbar700-1000_q2DN',          77947.3 ),
+  ('TTbar1000-inf_q2DN',          19124.2 )
+             )
