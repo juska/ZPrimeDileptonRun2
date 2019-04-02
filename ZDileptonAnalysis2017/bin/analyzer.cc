@@ -209,7 +209,8 @@ int main(int argc, char* argv[]){
         break;
       }
     }
-    if (!pileup_weights) {cout << "pileup_weights hist not found" << endl;  return -1;}
+    //if (!pileup_weights) {cout << "pileup_weights hist not found" << endl;  return -1;}
+    if (!pileup_weights) {cout << "pileup_weights hist not found" << endl; }
   }
 
   //Skims and Cuts//
@@ -574,39 +575,39 @@ int main(int argc, char* argv[]){
     m_Histos1D[hname] = new TH1D(hname,hname,100,0,100);
 
 // ... Reconstructed mt2 using simplex method
-    hname = Form("%i_MT2s_r",i);
+    hname = Form("%i_MT2r",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
 
-    hname = Form("%i_NUfromTOPs_dzmin_r",i);
+    hname = Form("%i_NUfromT_dzmin",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,-200,200);
-    hname = Form("%i_NUfromANTITOPs_dzmin_r",i);
+    hname = Form("%i_NUfromANTIT_dzmin",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,-200,200);
 
-    hname = Form("%i_M_top_r",i);
+    hname = Form("%i_M_T",i);
     m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
-    hname = Form("%i_M_antitop_r",i);
+    hname = Form("%i_M_ANTIT",i);
     m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
-    hname = Form("%i_MT_top_r",i);
+    hname = Form("%i_MT_T",i);
     m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
-    hname = Form("%i_MT_antitop_r",i);
+    hname = Form("%i_MT_ANTIT",i);
     m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
-    hname = Form("%i_MT_W+_r",i);
+    hname = Form("%i_MTr_W+",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,0,200);
-    hname = Form("%i_MT_W-_r",i);
+    hname = Form("%i_MTr_W-",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,0,200);
-    hname = Form("%i_TOP_xl_r",i);
+    hname = Form("%i_T_xl",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,0,2);
-    hname = Form("%i_ANTITOP_xl_r",i);
+    hname = Form("%i_ANTIT_xl",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,0,2);
 
-    hname = Form("%i_cosTheta1sz_r",i);
+    hname = Form("%i_cosTheta1r",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
-    hname = Form("%i_cosTheta2sz_r",i);
+    hname = Form("%i_cosTheta2r",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
 
-    hname = Form("%i_cosTheta1sz_mt2_r",i);
+    hname = Form("%i_cosTheta1r_mt2",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
-    hname = Form("%i_cosTheta2sz_mt2_r",i); 
+    hname = Form("%i_cosTheta2r_mt2",i); 
     m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
   }
 
@@ -816,12 +817,6 @@ int main(int argc, char* argv[]){
       TLorentzVector NUtotal;                                                   // nu+nubar system
       TLorentzVector TOPvis, ANTITOPvis;                                        // visible decay products from (anti)top
       TVector3 betaTOP, betaANTITOP;
-      TVector3 betatop_fromgennu;
-      TVector3 betatop_xysimplex_zgennu;      
-      TVector3 betatop_xygennu_zsimplex_root0;      
-      TVector3 betatop_xygennu_zsimplex_root1;      
-      TVector3 betatop_simplex_root0;      
-      TVector3 betatop_simplex_root1;      
       if (name.Contains("tt", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
         for (int i=0; i<nGen; i++) {
           TLorentzVector TLV ;
@@ -1105,7 +1100,7 @@ int main(int argc, char* argv[]){
 
       }
 
-      weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
+      //weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
 
       //topPt, pdf, and q2 reweighting - only affect ttbar
       if ( inName.Contains("ttbar", TString::kIgnoreCase) ) {
@@ -1638,72 +1633,72 @@ int main(int argc, char* argv[]){
 
 // === spin polarization info at reconstructed particle level ===   
 
-    TLorentzVector TOP_r, LEPfromTOP_r, BfromTOP_r;
-    TLorentzVector ANTITOP_r, LEPfromANTITOP_r, BfromANTITOP_r;
-    TLorentzVector TOPvis_r, ANTITOPvis_r;
+    TLorentzVector T, LEPfromT, BfromT;
+    TLorentzVector ANTIT, LEPfromANTIT, BfromANTIT;
+    TLorentzVector Tvis, ANTITvis;
     if (lep0_charge == +1){
-      LEPfromTOP_r = lep0 ;    BfromTOP_r = minjet0;
-      LEPfromANTITOP_r = lep1; BfromANTITOP_r = minjet1;      
+      LEPfromT = lep0 ;    BfromT = minjet0;
+      LEPfromANTIT = lep1; BfromANTIT = minjet1;      
     }  
     else if (lep0_charge == -1){
-      LEPfromTOP_r = lep1 ;    BfromTOP_r = minjet1;
-      LEPfromANTITOP_r = lep0; BfromANTITOP_r = minjet0;
+      LEPfromT = lep1 ;    BfromT = minjet1;
+      LEPfromANTIT = lep0; BfromANTIT = minjet0;
     }
 
-    TOPvis_r = LEPfromTOP_r + BfromTOP_r;             // visible dacay products of reconstructed top
-    ANTITOPvis_r = LEPfromANTITOP_r+ BfromANTITOP_r;  // visible dacay products of reconstructed antitop
+    Tvis = LEPfromT + BfromT;             // visible dacay products of reconstructed top
+    ANTITvis = LEPfromANTIT+ BfromANTIT;  // visible dacay products of reconstructed antitop
 
 // === Simplex method to extract neutrino px-py- components ===   
     Mt2::Basic_Mt2_332_Calculator mt2Calculator_r;
-    Mt2::LorentzTransverseVector TOPvis_TVec_r(Mt2::TwoVector(TOPvis_r.Px(), TOPvis_r.Py()), TOPvis_r.M());
-    Mt2::LorentzTransverseVector ANTITOPvis_TVec_r(Mt2::TwoVector(ANTITOPvis_r.Px(), ANTITOPvis_r.Py()), ANTITOPvis_r.M());
-    Mt2::TwoVector NUtotal_pT_r(met.Px(), met.Py());
-    double basic_MT2_332_r = mt2Calculator_r.mt2_332(TOPvis_TVec_r, ANTITOPvis_TVec_r, NUtotal_pT_r, 0);
-    double NUfromTOPs_xy_r[2]     = {mt2Calculator_r.getPXInvisA_atMt2Solution(),  mt2Calculator_r.getPYInvisA_atMt2Solution()};
-    double NUfromANTITOPs_xy_r[2] = {mt2Calculator_r.getPXInvisB_atMt2Solution(),  mt2Calculator_r.getPYInvisB_atMt2Solution()};
+    Mt2::LorentzTransverseVector Tvis_TVec(Mt2::TwoVector(Tvis.Px(), Tvis.Py()), Tvis.M());
+    Mt2::LorentzTransverseVector ANTITvis_TVec(Mt2::TwoVector(ANTITvis.Px(), ANTITvis.Py()), ANTITvis.M());
+    Mt2::TwoVector MET(met.Px(), met.Py());
+    double basic_MT2r_332 = mt2Calculator_r.mt2_332(Tvis_TVec, ANTITvis_TVec, MET, 0);
+    double NUfromTs_xy[2]     = {mt2Calculator_r.getPXInvisA_atMt2Solution(),  mt2Calculator_r.getPYInvisA_atMt2Solution()};
+    double NUfromANTITs_xy[2] = {mt2Calculator_r.getPXInvisB_atMt2Solution(),  mt2Calculator_r.getPYInvisB_atMt2Solution()};
 
-// === TOP_r's Neutrino px-py- components from simplex, pz- from constraint (using simplex px, py as inputs) ===
-    double NUfromTOPs_zW_r[2], NUfromTOPs_zT_r[2];
-    kz_calculator(LEPfromTOP_r, NUfromTOPs_xy_r, NUfromTOPs_zW_r, Mw  );      // W   mass constraint
-    kz_calculator(TOPvis_r,     NUfromTOPs_xy_r, NUfromTOPs_zT_r, Mtop);      // Top mass constraint
-    double NUfromTOPs_dzmin_zW_r, NUfromTOPs_dzmin_zT_r;
-    choose(NUfromTOPs_zW_r, NUfromTOPs_zT_r, NUfromTOPs_dzmin_zW_r, NUfromTOPs_dzmin_zT_r);
+// === TOP Neutrino px-py- components from simplex, pz- from constraint (using simplex px, py as inputs) ===
+    double NUfromTs_zW[2], NUfromTs_zT[2];
+    kz_calculator(LEPfromT, NUfromTs_xy, NUfromTs_zW, Mw  );      // W   mass constraint
+    kz_calculator(Tvis,     NUfromTs_xy, NUfromTs_zT, Mtop);      // Top mass constraint
+    double NUfromTs_dzmin_zW, NUfromTs_dzmin_zT;
+    choose(NUfromTs_zW, NUfromTs_zT, NUfromTs_dzmin_zW, NUfromTs_dzmin_zT);
 
-// === ANTITOP_r's Neutrino px- py- components from simplex, pz- from constraint (using simplex px, py as inputs) ===
+// === ANTITOP Neutrino px- py- components from simplex, pz- from constraint (using simplex px, py as inputs) ===
 
-    double NUfromANTITOPs_zW_r[2], NUfromANTITOPs_zT_r[2];
-    kz_calculator(LEPfromANTITOP_r, NUfromANTITOPs_xy_r, NUfromANTITOPs_zW_r, Mw  );      // W   mass constraint
-    kz_calculator(ANTITOPvis_r,     NUfromANTITOPs_xy_r, NUfromANTITOPs_zT_r, Mtop);      // Top mass constraint
-    double NUfromANTITOPs_dzmin_zW_r, NUfromANTITOPs_dzmin_zT_r;
-    choose(NUfromANTITOPs_zW_r, NUfromANTITOPs_zT_r, NUfromANTITOPs_dzmin_zW_r, NUfromANTITOPs_dzmin_zT_r);
+    double NUfromANTITs_zW[2], NUfromANTITs_zT[2];
+    kz_calculator(LEPfromANTIT, NUfromANTITs_xy, NUfromANTITs_zW, Mw  );      // W   mass constraint
+    kz_calculator(ANTITvis,     NUfromANTITs_xy, NUfromANTITs_zT, Mtop);      // Top mass constraint
+    double NUfromANTITs_dzmin_zW, NUfromANTITs_dzmin_zT;
+    choose(NUfromANTITs_zW, NUfromANTITs_zT, NUfromANTITs_dzmin_zW, NUfromANTITs_dzmin_zT);
 
 // Fully reconstructed TOP: costheta 
-    TLorentzVector NUfromTOPsz_r;
-    double NUfromTOPsz_e_r = sqrt(pow(NUfromTOPs_xy_r[0],2)+pow(NUfromTOPs_xy_r[1],2)+pow(NUfromTOPs_dzmin_zW_r,2));
-    NUfromTOPsz_r.SetPxPyPzE(NUfromTOPs_xy_r[0], NUfromTOPs_xy_r[1], NUfromTOPs_dzmin_zW_r, NUfromTOPsz_e_r);
-    TLorentzVector TOPsz_r = LEPfromTOP_r + NUfromTOPsz_r + BfromTOP_r;
+    TLorentzVector NUfromTsz;
+    double NUfromTsz_e = sqrt(pow(NUfromTs_xy[0],2)+pow(NUfromTs_xy[1],2)+pow(NUfromTs_dzmin_zW,2));
+    NUfromTsz.SetPxPyPzE(NUfromTs_xy[0], NUfromTs_xy[1], NUfromTs_dzmin_zW, NUfromTsz_e);
+    TLorentzVector Tsz = LEPfromT + NUfromTsz + BfromT;
 
-    double M_TOP_r  = TOPsz_r.M();
-    double MT_TOP_r = MT(TOPvis_r, NUfromTOPsz_r);
+    double M_T  = Tsz.M();
+    double MT_T = MT(Tvis, NUfromTsz);
 
-    TVector3 betaTOPsz_r =  TOPsz_r.BoostVector() ;
-    LEPfromTOP_r.Boost(-betaTOPsz_r);
-    double lepCosTOPsz_r =  LEPfromTOP_r.Vect().Unit().Dot(-betaTOPsz_r.Unit());
-    LEPfromTOP_r.Boost(betaTOPsz_r);
+    TVector3 betaTsz =  Tsz.BoostVector() ;
+    LEPfromT.Boost(-betaTsz);
+    double lepCosTsz =  LEPfromT.Vect().Unit().Dot(-betaTsz.Unit());
+    LEPfromT.Boost(betaTsz);
 
 // Fully reconstructed ANTITOP: costheta 
-    TLorentzVector NUfromANTITOPsz_r;
-    double NUfromANTITOPsz_e_r = sqrt(pow(NUfromANTITOPs_xy_r[0],2)+pow(NUfromANTITOPs_xy_r[1],2)+pow(NUfromANTITOPs_dzmin_zW_r,2));
-    NUfromANTITOPsz_r.SetPxPyPzE(NUfromANTITOPs_xy_r[0], NUfromANTITOPs_xy_r[1], NUfromANTITOPs_dzmin_zW_r, NUfromANTITOPsz_e_r);
-    TLorentzVector ANTITOPsz_r = LEPfromANTITOP_r + NUfromANTITOPsz_r + BfromANTITOP_r;
+    TLorentzVector NUfromANTITsz;
+    double NUfromANTITsz_e = sqrt(pow(NUfromANTITs_xy[0],2)+pow(NUfromANTITs_xy[1],2)+pow(NUfromANTITs_dzmin_zW,2));
+    NUfromANTITsz.SetPxPyPzE(NUfromANTITs_xy[0], NUfromANTITs_xy[1], NUfromANTITs_dzmin_zW, NUfromANTITsz_e);
+    TLorentzVector ANTITsz = LEPfromANTIT + NUfromANTITsz + BfromANTIT;
 
-    double M_ANTITOP_r  = ANTITOPsz_r.M();
-    double MT_ANTITOP_r = MT(ANTITOPvis_r, NUfromANTITOPsz_r);
+    double M_ANTIT  = ANTITsz.M();
+    double MT_ANTIT = MT(ANTITvis, NUfromANTITsz);
 
-    TVector3 betaANTITOPsz_r =  ANTITOPsz_r.BoostVector() ;
-    LEPfromANTITOP_r.Boost(-betaANTITOPsz_r);
-    double lepCosANTITOPsz_r =  LEPfromANTITOP_r.Vect().Unit().Dot(-betaANTITOPsz_r.Unit());
-    LEPfromANTITOP_r.Boost(betaANTITOPsz_r);
+    TVector3 betaANTITsz =  ANTITsz.BoostVector() ;
+    LEPfromANTIT.Boost(-betaANTITsz);
+    double lepCosANTITsz =  LEPfromANTIT.Vect().Unit().Dot(-betaANTITsz.Unit());
+    LEPfromANTIT.Boost(betaANTITsz);
 
     TString prefix;
 
@@ -1807,25 +1802,25 @@ int main(int argc, char* argv[]){
 
     FillHist1D(prefix+"nPV", nPV, weight);
 
-    FillHist1D(prefix+"MT2s_r", basic_MT2_332_r, weight);
-    FillHist1D(prefix+"NUfromTOPs_dzmin_r",  NUfromTOPs_dzmin_zW_r - NUfromTOPs_dzmin_zT_r,  weight);
-    FillHist1D(prefix+"NUfromANTITOPs_dzmin_r",  NUfromANTITOPs_dzmin_zW_r - NUfromANTITOPs_dzmin_zT_r,  weight);
+    FillHist1D(prefix+"MT2r", basic_MT2r_332, weight);
+    FillHist1D(prefix+"NUfromT_dzmin",  NUfromTs_dzmin_zW - NUfromTs_dzmin_zT,  weight);
+    FillHist1D(prefix+"NUfromANTIT_dzmin",  NUfromANTITs_dzmin_zW - NUfromANTITs_dzmin_zT,  weight);
 
-    FillHist1D(prefix+"M_top_r", M_TOP_r, weight);
-    FillHist1D(prefix+"M_antitop_r", M_ANTITOP_r, weight);
-    FillHist1D(prefix+"MT_top_r", MT_TOP_r, weight);
-    FillHist1D(prefix+"MT_antitop_r", MT_ANTITOP_r, weight);
-    FillHist1D(prefix+"MT_W+_r", MT(LEPfromTOP_r, NUfromTOPsz_r), weight);
-    FillHist1D(prefix+"MT_W-_r", MT(LEPfromANTITOP_r, NUfromANTITOPsz_r), weight);
-    FillHist1D(prefix+"TOP_xl_r",      2.*LEPfromTOP_r.E()/TOPsz_r.E(),         weight);
-    FillHist1D(prefix+"ANTITOP_xl_r",  2.*LEPfromANTITOP_r.E()/ANTITOPsz_r.E(), weight);
+    FillHist1D(prefix+"M_T", M_T, weight);
+    FillHist1D(prefix+"M_ANTIT", M_ANTIT, weight);
+    FillHist1D(prefix+"MT_T", MT_T, weight);
+    FillHist1D(prefix+"MT_ANTIT", MT_ANTIT, weight);
+    FillHist1D(prefix+"MTr_W+", MT(LEPfromT, NUfromTsz), weight);
+    FillHist1D(prefix+"MTr_W-", MT(LEPfromANTIT, NUfromANTITsz), weight);
+    FillHist1D(prefix+"T_xl",      2.*LEPfromT.E()/Tsz.E(),         weight);
+    FillHist1D(prefix+"ANTIT_xl",  2.*LEPfromANTIT.E()/ANTITsz.E(), weight);
 
-    FillHist1D(prefix+"cosTheta1sz_r", lepCosTOPsz_r, weight);
-    FillHist1D(prefix+"cosTheta2sz_r", lepCosANTITOPsz_r, weight);
+    FillHist1D(prefix+"cosTheta1r", lepCosTsz, weight);
+    FillHist1D(prefix+"cosTheta2r", lepCosANTITsz, weight);
 
-    if(basic_MT2_332_r > 150.) {
-      FillHist1D(prefix+"cosTheta1sz_mt2_r", lepCosTOPsz_r,     weight);
-      FillHist1D(prefix+"cosTheta2sz_mt2_r", lepCosANTITOPsz_r, weight);
+    if(basic_MT2r_332 > 150.) {
+      FillHist1D(prefix+"cosTheta1r_mt2", lepCosTsz,     weight);
+      FillHist1D(prefix+"cosTheta2r_mt2", lepCosANTITsz, weight);
     }
 
 
