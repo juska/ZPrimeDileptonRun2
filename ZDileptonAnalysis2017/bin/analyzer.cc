@@ -209,8 +209,7 @@ int main(int argc, char* argv[]){
         break;
       }
     }
-    //if (!pileup_weights) {cout << "pileup_weights hist not found" << endl;  return -1;}
-    if (!pileup_weights) {cout << "pileup_weights hist not found" << endl; }
+    if (!pileup_weights) {cout << "pileup_weights hist not found" << endl;  return -1;}
   }
 
   //Skims and Cuts//
@@ -1100,7 +1099,7 @@ int main(int argc, char* argv[]){
 
       }
 
-      //weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
+      weight *= pileup_weights->GetBinContent( pileup_weights->FindBin(mu) );
 
       //topPt, pdf, and q2 reweighting - only affect ttbar
       if ( inName.Contains("ttbar", TString::kIgnoreCase) ) {
