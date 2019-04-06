@@ -50,6 +50,7 @@ map<TString, TH2*> m_Histos2D;
 
 //parameters- edit in pars.txt
 bool isMC;
+TString prefix;
 TString uncert;
 //jec, jer, btagSF, mistagSF, pileup, pdf, q2ttbar, muTrigSys, muIdSys, eleTrigSys, eleIdSys : UP or DOWN
 //topPtWeight : default (sqrt tPt*tbarPt), UP (no top reweighting), DOWN is NOT an option (made symmetric with UP in later stages)
@@ -573,6 +574,20 @@ int main(int argc, char* argv[]){
     hname = Form("%i_nPV",i);
     m_Histos1D[hname] = new TH1D(hname,hname,100,0,100);
 
+// ... gen level mt2 using simplex method 
+    if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+      hname = Form("%i_TOP_xl",i);
+      m_Histos1D[hname] = new TH1D(hname,hname,40,0,2);
+      hname = Form("%i_ANTITOP_xl",i);
+      m_Histos1D[hname] = new TH1D(hname,hname,40,0,2);
+      hname = Form("%i_cosTheta1",i);
+      m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
+      hname = Form("%i_cosTheta2",i);
+      m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
+      hname = Form("%i_MT2s",i);
+      m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
+    }
+
 // ... Reconstructed mt2 using simplex method
     hname = Form("%i_MT2r",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
@@ -683,6 +698,24 @@ int main(int argc, char* argv[]){
   hname = "tbar_pt";
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,2000);
 
+
+  map<int, double> top_xl_region, antitop_xl_region;
+  map<int,double> cosTheta1r_region, cosTheta2r_region;
+  map<int,double> rmin0_region, rmin1_region;
+  map<int, double> sT_met_region;
+
+  TFile* outFile = new TFile(outName,"RECREATE");
+  map<TString, TTree*> tree;
+  for (int i=0; i<nDirs; i++) {
+    tree[Form("%i_",i)] = new TTree(Form("region%i_T",i), Form("region%i_T",i));
+    tree[Form("%i_",i)]->Branch("top_xl_region",     &top_xl_region[i]);
+    tree[Form("%i_",i)]->Branch("antitop_xl_region", &antitop_xl_region[i]);
+    tree[Form("%i_",i)]->Branch("cosTheta1r_region", &cosTheta1r_region[i]);
+    tree[Form("%i_",i)]->Branch("cosTheta2r_region", &cosTheta2r_region[i]);
+    tree[Form("%i_",i)]->Branch("rmin0_region", &rmin0_region[i]);
+    tree[Form("%i_",i)]->Branch("rmin1_region", &rmin1_region[i]);
+    tree[Form("%i_",i)]->Branch("sT_met_region", &sT_met_region[i]);
+  }
   //Set Branches//
 
   ULong64_t event;
@@ -695,16 +728,20 @@ int main(int argc, char* argv[]){
   T->SetBranchAddress("rho", &rho);
   if (isMC) T->SetBranchAddress("mu", &mu);
 
- /* string triggers[nTriggers] = {
-    "HLT_Mu45_eta2p1_v",
-    "HLT_Mu50_v",
-    "HLT_TkMu50_v",
-    "HLT_Mu30_TkMu11_v",
-    "HLT_Mu30_Ele30_CaloIdL_GsfTrkIdVL_v",
-    "HLT_Ele105_CaloIdVT_GsfTrkIdT_v",
-    "HLT_Ele115_CaloIdVT_GsfTrkIdT_v",
-    "HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_"
-  };*/
+ /* 
+   string triggers[nTriggers] = {
+     "HLT_Mu27_v",
+     "HLT_Mu50_v",
+     "HLT_Mu55_v",
+     "HLT_TkMu100_v",
+     "HLT_Mu37_TkMu27_v",
+     "HLT_Mu27_Ele37_CaloIdL_MW_v",
+     "HLT_Mu37_Ele27_CaloIdL_MW_v",
+     "HLT_Ele115_CaloIdVT_GsfTrkIdT_v",
+     "HLT_Ele135_CaloIdVT_GsfTrkIdT_v",
+     "HLT_DoubleEle33_CaloIdL_MW_v"
+};
+*/
 
   vector<bool> *trig_passed = 0;
   //vector<int> *trig_prescale = 0;
@@ -722,7 +759,7 @@ int main(int argc, char* argv[]){
     T->SetBranchAddress("wgt_env", &wgt_env);
     T->SetBranchAddress("wgt_rep", &wgt_rep);
   }
- if (name.Contains("tt", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+ if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
     T->SetBranchAddress("nGen", &nGen);
     T->SetBranchAddress("gen_status", gen_status);
     T->SetBranchAddress("gen_PID", gen_PID);
@@ -809,6 +846,9 @@ int main(int argc, char* argv[]){
     T->GetEntry(n);
     TLorentzVector lep0, lep1;
     int lep0_charge = -999;
+    double top_xl = -999, antitop_xl = -999;
+    double lepCosTOP = -999, lepCosANTITOP = -999;
+    double basic_MT2_332 = -999;
     weight = weight0;
     if (isMC) {
       TLorentzVector TOP,  LEPfromTOP,  BfromTOP,  NUfromTOP ;                  // top and it's decay particles
@@ -816,7 +856,7 @@ int main(int argc, char* argv[]){
       TLorentzVector NUtotal;                                                   // nu+nubar system
       TLorentzVector TOPvis, ANTITOPvis;                                        // visible decay products from (anti)top
       TVector3 betaTOP, betaANTITOP;
-      if (name.Contains("tt", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+      if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
         for (int i=0; i<nGen; i++) {
           TLorentzVector TLV ;
           TLV.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
@@ -859,17 +899,19 @@ int main(int argc, char* argv[]){
           FillHist1D("NUfromANTITOP_px", NUfromANTITOP.Px(), weight);
           FillHist1D("NUfromANTITOP_py", NUfromANTITOP.Py(), weight);
 
-          FillHist1D("TOP_xl",      2.*LEPfromTOP.E()/TOP.E(),         weight);
-          FillHist1D("ANTITOP_xl",  2.*LEPfromANTITOP.E()/ANTITOP.E(), weight);
+          top_xl     = 2.*LEPfromTOP.E()/TOP.E();
+          antitop_xl = 2.*LEPfromANTITOP.E()/ANTITOP.E();
+          FillHist1D("TOP_xl",      top_xl,         weight);
+          FillHist1D("ANTITOP_xl",  antitop_xl,     weight);
 
 // === MCtruth level costheta calculations ===
           LEPfromTOP.Boost(-betaTOP);
-          double lepCosTOP =  LEPfromTOP.Vect().Unit().Dot(-betaTOP.Unit());
+          lepCosTOP =  LEPfromTOP.Vect().Unit().Dot(-betaTOP.Unit());
           LEPfromTOP.Boost(betaTOP);
           FillHist1D("cosTheta1", lepCosTOP, weight);
           
           LEPfromANTITOP.Boost(-betaANTITOP);
-          double lepCosANTITOP =  LEPfromANTITOP.Vect().Unit().Dot(-betaANTITOP.Unit());
+          lepCosANTITOP =  LEPfromANTITOP.Vect().Unit().Dot(-betaANTITOP.Unit());
           LEPfromANTITOP.Boost(betaANTITOP);
           FillHist1D("cosTheta2", lepCosANTITOP, weight);
           
@@ -960,7 +1002,7 @@ int main(int argc, char* argv[]){
           Mt2::LorentzTransverseVector TOPvis_TVec(Mt2::TwoVector(TOPvis.Px(), TOPvis.Py()), TOPvis.M());
           Mt2::LorentzTransverseVector ANTITOPvis_TVec(Mt2::TwoVector(ANTITOPvis.Px(), ANTITOPvis.Py()), ANTITOPvis.M());
           Mt2::TwoVector NUtotal_pT(NUtotal.Px(), NUtotal.Py());
-          double basic_MT2_332 = mt2Calculator.mt2_332(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0);
+          basic_MT2_332 = mt2Calculator.mt2_332(TOPvis_TVec, ANTITOPvis_TVec, NUtotal_pT, 0);
           double NUfromTOPs_xy[2]     = {mt2Calculator.getPXInvisA_atMt2Solution(),  mt2Calculator.getPYInvisA_atMt2Solution()};
           double NUfromANTITOPs_xy[2] = {mt2Calculator.getPXInvisB_atMt2Solution(),  mt2Calculator.getPYInvisB_atMt2Solution()};
 
@@ -987,7 +1029,7 @@ int main(int argc, char* argv[]){
           cout << " NUfrom ANTITOP : px, simplex px " << NUfromANTITOP_xy[0] << " " << NUfromANTITOPs_xy[0] <<  endl ;
           cout << " NUfrom ANTITOP : py, ximplex py " << NUfromANTITOP_xy[1] << " " << NUfromANTITOPs_xy[1] << endl ;
           */
-
+          
           // TOP: costheta using simplex neutrino px- py- and mctruth pz- ...
           TLorentzVector NUfromTOPs;
           double NUfromTOPs_e = sqrt(pow(NUfromTOPs_xy[0],2) + pow(NUfromTOPs_xy[1],2) + pow(NUfromTOP.Pz(),2));
@@ -1071,6 +1113,7 @@ int main(int argc, char* argv[]){
           FillHist1D("cosTheta2sz", lepCosANTITOPsz, weight);
           FillHist2D("cosTheta2sz_vs_cosTheta2", lepCosANTITOP, lepCosANTITOPsz, weight);
 
+
           FillHist1D("TOPsz_xl",      2.*LEPfromTOP.E()/TOPsz.E(),         weight);
           FillHist1D("ANTITOPsz_xl",  2.*LEPfromANTITOP.E()/ANTITOPsz.E(), weight);
 
@@ -1152,7 +1195,7 @@ int main(int argc, char* argv[]){
       if (lep0flavor == 'm' && lep1flavor == 'm') {
         v_cuts[channelCut].second += weight;  v_cuts_ptr->at(channelCut).second += weight;
 
-        //HLT_Mu50 or HLT_TkMu50 triggers
+        //HLT_Mu50 or HLT_TkMu55 triggers
         if ( !(*trig_passed)[1] && !(*trig_passed)[2] ) continue;
 
         if (isMC) {
@@ -1222,7 +1265,7 @@ int main(int argc, char* argv[]){
         v_cuts[channelCut].second += weight;  v_cuts_ptr->at(channelCut).second += weight;
 
         //HLT_DoubleEle33_CaloIdL_GsfTrkIdVL_ trigger
-        if ( !(*trig_passed)[7] ) continue;
+        if ( !(*trig_passed)[9] ) continue;
 
         if (isMC) {
           int bin0 = eTrigSfHist->FindBin( fabs(ele_etaSupClust[0]), ele_pt[0]>eTrig_pT?eTrig_pT-1:ele_pt[0] );
@@ -1298,7 +1341,7 @@ int main(int argc, char* argv[]){
       if (lep0flavor != lep1flavor) {
         v_cuts[channelCut].second += weight;  v_cuts_ptr->at(channelCut).second += weight;
 
-        //HLT_Mu50 or HLT_TkMu50 triggers
+        //HLT_Mu50 or HLT_TkMu55 triggers
         if ( !(*trig_passed)[1] && !(*trig_passed)[2] ) continue;
 
         if (isMC) {
@@ -1382,23 +1425,22 @@ int main(int argc, char* argv[]){
     double hT=0;
     for (int i=0; i<nJet; i++) {
 
-      //loose jet cut
+      //tight jet cut
       if (fabs(jet_eta[i]) <= 2.7) {
-        if (jet_nhf[i]>=0.99 || jet_nef[i]>=0.99 || (jet_numneutral[i]+jet_chmult[i])<=1) continue;
-        if (fabs(jet_eta[i]) <= 2.5 && ( jet_chf[i]<=0 || jet_chmult[i]<=0 || jet_elef[i]>=0.99 )) continue;
+        if (jet_nhf[i]>=0.9 || jet_nef[i]>=0.9 || (jet_numneutral[i]+jet_chmult[i])<=1) continue;
+        if (fabs(jet_eta[i]) <= 2.4 && ( jet_chf[i]<=0 || jet_chmult[i]<=0 )) continue;
       }
       else if (2.7 < fabs(jet_eta[i]) && fabs(jet_eta[i]) <= 3.0) {
-        if (jet_nhf[i]>=0.98 || jet_nef[i]<=0.01 || jet_numneutral[i]<=2) continue;
+        if (jet_nef[i]<=0.02 || jet_nef[i]>=0.99 || jet_numneutral[i]<=2) continue;
       }
       else {
-        if (jet_nef[i]>=0.9 || jet_numneutral[i]<=10) continue;
+        if (jet_nef[i]>=0.9 || jet_nhf[i]<=0.02 || jet_numneutral[i]<=10) continue;
       }
 
       jetCorrectors[era]->setJetEta( jet_eta[i] );
       jetCorrectors[era]->setJetPt( jet_pt[i] );
       jetCorrectors[era]->setJetA( jet_area[i] );
       jetCorrectors[era]->setRho(rho);
-
       TLorentzVector jet;
       jet.SetPtEtaPhiM(jet_pt[i], jet_eta[i], jet_phi[i], jet_mass[i]);
       jet *= jetCorrectors[era]->getCorrection();
@@ -1699,7 +1741,6 @@ int main(int argc, char* argv[]){
     double lepCosANTITsz =  LEPfromANTIT.Vect().Unit().Dot(-betaANTITsz.Unit());
     LEPfromANTIT.Boost(betaANTITsz);
 
-    TString prefix;
 
     //exactly one jet
     if (jet1pt < 50) {
@@ -1728,6 +1769,8 @@ int main(int argc, char* argv[]){
       }
     }
 
+    int indx = stoi(prefix(0,1));
+
     FillHist1D(prefix+"nEleDiff", nEle-nGoodEle, weight);
     FillHist1D(prefix+"nMuonDiff", nMuon-nGoodMuon, weight);
     FillHist1D(prefix+"nJetDiff", nJet-nGoodJet, weight);
@@ -1747,6 +1790,9 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"dilepmass", dilepmass, weight);
     FillHist1D(prefix+"lepept", lepept, weight);
     FillHist1D(prefix+"lepmpt", lepmpt, weight);
+
+    rmin0_region[indx] = rmin0 * weight;
+    rmin1_region[indx] = rmin1 * weight;
 
     FillHist1D(prefix+"rmin0", rmin0, weight);
     FillHist1D(prefix+"rmin1", rmin1, weight);
@@ -1778,6 +1824,8 @@ int main(int argc, char* argv[]){
 
     double sT = hT+lep0.Pt()+lep1.Pt();
     double sT_met = sT + met_corrpt;
+   
+    sT_met_region[indx] = sT_met * weight;   
     double masslljjm = (lep0+lep1+jet0+jet1+met).M();
 
     FillHist1D(prefix+"sT", sT, weight);
@@ -1801,6 +1849,16 @@ int main(int argc, char* argv[]){
 
     FillHist1D(prefix+"nPV", nPV, weight);
 
+    if (isMC) {
+      if ( name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+       FillHist1D(prefix+"TOP_xl",     top_xl, weight);
+       FillHist1D(prefix+"ANTITOP_xl", antitop_xl, weight);
+       FillHist1D(prefix+"cosTheta1", lepCosTOP, weight);
+       FillHist1D(prefix+"cosTheta2", lepCosANTITOP, weight);
+       FillHist1D(prefix+"MT2s",      basic_MT2_332, weight);
+      }
+    }
+
     FillHist1D(prefix+"MT2r", basic_MT2r_332, weight);
     FillHist1D(prefix+"NUfromT_dzmin",  NUfromTs_dzmin_zW - NUfromTs_dzmin_zT,  weight);
     FillHist1D(prefix+"NUfromANTIT_dzmin",  NUfromANTITs_dzmin_zW - NUfromANTITs_dzmin_zT,  weight);
@@ -1811,8 +1869,15 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"MT_ANTIT", MT_ANTIT, weight);
     FillHist1D(prefix+"MTr_W+", MT(LEPfromT, NUfromTsz), weight);
     FillHist1D(prefix+"MTr_W-", MT(LEPfromANTIT, NUfromANTITsz), weight);
+
+    top_xl_region[indx]     = 2.*LEPfromT.E()/Tsz.E() * weight;
+    antitop_xl_region[indx] = 2.*LEPfromANTIT.E()/ANTITsz.E() * weight;
+
     FillHist1D(prefix+"T_xl",      2.*LEPfromT.E()/Tsz.E(),         weight);
     FillHist1D(prefix+"ANTIT_xl",  2.*LEPfromANTIT.E()/ANTITsz.E(), weight);
+
+    cosTheta1r_region[indx] = lepCosTsz * weight;
+    cosTheta2r_region[indx] = lepCosANTITsz * weight;
 
     FillHist1D(prefix+"cosTheta1r", lepCosTsz, weight);
     FillHist1D(prefix+"cosTheta2r", lepCosANTITsz, weight);
@@ -1821,8 +1886,8 @@ int main(int argc, char* argv[]){
       FillHist1D(prefix+"cosTheta1r_mt2", lepCosTsz,     weight);
       FillHist1D(prefix+"cosTheta2r_mt2", lepCosANTITsz, weight);
     }
-
-
+    tree[prefix]->Fill();
+    
   }
   cout << difftime(time(NULL), start) << " s" << endl;
   cout << "Min_jet0 = Min_jet1: " << sameRlepjet << endl;
@@ -1872,7 +1937,7 @@ int main(int argc, char* argv[]){
 
   //Write Histograms//
 
-  TFile* outFile = new TFile(outName,"RECREATE");
+  //TFile* outFile = new TFile(outName,"RECREATE");
   outFile->cd();
 
   //cuts->Write(); ll_cuts->Write(); lj_cuts->Write(); jj_cuts->Write();
@@ -1891,7 +1956,6 @@ int main(int argc, char* argv[]){
     outFile->cd();
     hid->second->Write();
   }
-
   outFile->Write();
   delete outFile;
   outFile = 0;
@@ -2012,7 +2076,7 @@ double rms_pm(const vector<float>& vec) {
 
   for (int i=0; i<size; i++) sum += ( vec[i]-1. )*( vec[i]-1. );
 
-  return sqrt(sum / size);
+  return sqrt(sum) / size;
 }
 
 bool newBTag( const float& coin, const float& pT, const int& flavor, const bool& oldBTag, TGraphAsymmErrors& g_eff, const TString& variation ) {
@@ -2226,3 +2290,4 @@ void choose(const double A[2], const double B[2], double& zA, double& zB){
     zB = zA ;    
   } 
 }  
+
