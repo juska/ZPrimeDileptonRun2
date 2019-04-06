@@ -591,12 +591,10 @@ int main(int argc, char* argv[]){
 // ... Reconstructed mt2 using simplex method
     hname = Form("%i_MT2r",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,0,400);
-
     hname = Form("%i_NUfromT_dzmin",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,-200,200);
     hname = Form("%i_NUfromANTIT_dzmin",i);
     m_Histos1D[hname] = new TH1D(hname,hname,200,-200,200);
-
     hname = Form("%i_M_T",i);
     m_Histos1D[hname] = new TH1D(hname,hname,400,0,400);
     hname = Form("%i_M_ANTIT",i);
@@ -613,12 +611,10 @@ int main(int argc, char* argv[]){
     m_Histos1D[hname] = new TH1D(hname,hname,40,0,2);
     hname = Form("%i_ANTIT_xl",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,0,2);
-
     hname = Form("%i_cosTheta1r",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
     hname = Form("%i_cosTheta2r",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
-
     hname = Form("%i_cosTheta1r_mt2",i);
     m_Histos1D[hname] = new TH1D(hname,hname,40,-1,1);
     hname = Form("%i_cosTheta2r_mt2",i); 
@@ -700,21 +696,22 @@ int main(int argc, char* argv[]){
 
 
   map<int, double> top_xl_region, antitop_xl_region;
-  map<int,double> cosTheta1r_region, cosTheta2r_region;
-  map<int,double> rmin0_region, rmin1_region;
+  map<int, double> cosTheta1r_region, cosTheta2r_region;
+  map<int, double> rmin0_region, rmin1_region;
   map<int, double> sT_met_region;
 
   TFile* outFile = new TFile(outName,"RECREATE");
   map<TString, TTree*> tree;
   for (int i=0; i<nDirs; i++) {
     tree[Form("%i_",i)] = new TTree(Form("region%i_T",i), Form("region%i_T",i));
+
     tree[Form("%i_",i)]->Branch("top_xl_region",     &top_xl_region[i]);
     tree[Form("%i_",i)]->Branch("antitop_xl_region", &antitop_xl_region[i]);
     tree[Form("%i_",i)]->Branch("cosTheta1r_region", &cosTheta1r_region[i]);
     tree[Form("%i_",i)]->Branch("cosTheta2r_region", &cosTheta2r_region[i]);
-    tree[Form("%i_",i)]->Branch("rmin0_region", &rmin0_region[i]);
-    tree[Form("%i_",i)]->Branch("rmin1_region", &rmin1_region[i]);
-    tree[Form("%i_",i)]->Branch("sT_met_region", &sT_met_region[i]);
+    tree[Form("%i_",i)]->Branch("rmin0_region",      &rmin0_region[i]);
+    tree[Form("%i_",i)]->Branch("rmin1_region",      &rmin1_region[i]);
+    tree[Form("%i_",i)]->Branch("sT_met_region",     &sT_met_region[i]);
   }
   //Set Branches//
 
@@ -1135,7 +1132,6 @@ int main(int argc, char* argv[]){
 
             FillHist1D("cosTheta1sz_mt2", lepCosTOPsz,     weight);
             FillHist1D("cosTheta2sz_mt2", lepCosANTITOPsz, weight);
-
           }
 
         }
