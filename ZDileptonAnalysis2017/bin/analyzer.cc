@@ -695,23 +695,24 @@ int main(int argc, char* argv[]){
   m_Histos1D[hname] = new TH1D(hname,hname,200,0,2000);
 
 
-  map<int, double> top_xl_region, antitop_xl_region;
-  map<int, double> cosTheta1r_region, cosTheta2r_region;
-  map<int, double> rmin0_region, rmin1_region;
-  map<int, double> sT_met_region;
+  double top_xl_region, antitop_xl_region;
+  double cosTheta1r_region, cosTheta2r_region;
+  double rmin0_region, rmin1_region;
+  double sT_met_region, weight_region;
 
   TFile* outFile = new TFile(outName,"RECREATE");
   map<TString, TTree*> tree;
   for (int i=0; i<nDirs; i++) {
-    tree[Form("%i_",i)] = new TTree(Form("region%i_T",i), Form("region%i_T",i));
+    tree[Form("%iT",i)] = new TTree(Form("%iT",i), Form("%iT",i));
 
-    tree[Form("%i_",i)]->Branch("top_xl_region",     &top_xl_region[i]);
-    tree[Form("%i_",i)]->Branch("antitop_xl_region", &antitop_xl_region[i]);
-    tree[Form("%i_",i)]->Branch("cosTheta1r_region", &cosTheta1r_region[i]);
-    tree[Form("%i_",i)]->Branch("cosTheta2r_region", &cosTheta2r_region[i]);
-    tree[Form("%i_",i)]->Branch("rmin0_region",      &rmin0_region[i]);
-    tree[Form("%i_",i)]->Branch("rmin1_region",      &rmin1_region[i]);
-    tree[Form("%i_",i)]->Branch("sT_met_region",     &sT_met_region[i]);
+    tree[Form("%iT",i)]->Branch("weight_region",     &weight_region);
+    tree[Form("%iT",i)]->Branch("top_xl_region",     &top_xl_region);
+    tree[Form("%iT",i)]->Branch("antitop_xl_region", &antitop_xl_region);
+    tree[Form("%iT",i)]->Branch("cosTheta1r_region", &cosTheta1r_region);
+    tree[Form("%iT",i)]->Branch("cosTheta2r_region", &cosTheta2r_region);
+    tree[Form("%iT",i)]->Branch("rmin0_region",      &rmin0_region);
+    tree[Form("%iT",i)]->Branch("rmin1_region",      &rmin1_region);
+    tree[Form("%iT",i)]->Branch("sT_met_region",     &sT_met_region);
   }
   //Set Branches//
 
@@ -1765,8 +1766,6 @@ int main(int argc, char* argv[]){
       }
     }
 
-    int indx = stoi(prefix(0,1));
-
     FillHist1D(prefix+"nEleDiff", nEle-nGoodEle, weight);
     FillHist1D(prefix+"nMuonDiff", nMuon-nGoodMuon, weight);
     FillHist1D(prefix+"nJetDiff", nJet-nGoodJet, weight);
@@ -1787,8 +1786,9 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"lepept", lepept, weight);
     FillHist1D(prefix+"lepmpt", lepmpt, weight);
 
-    rmin0_region[indx] = rmin0 * weight;
-    rmin1_region[indx] = rmin1 * weight;
+    weight_region = weight;
+    rmin0_region = rmin0 ;
+    rmin1_region = rmin1 ;
 
     FillHist1D(prefix+"rmin0", rmin0, weight);
     FillHist1D(prefix+"rmin1", rmin1, weight);
@@ -1821,7 +1821,7 @@ int main(int argc, char* argv[]){
     double sT = hT+lep0.Pt()+lep1.Pt();
     double sT_met = sT + met_corrpt;
    
-    sT_met_region[indx] = sT_met * weight;   
+    sT_met_region = sT_met ;   
     double masslljjm = (lep0+lep1+jet0+jet1+met).M();
 
     FillHist1D(prefix+"sT", sT, weight);
@@ -1866,14 +1866,14 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"MTr_W+", MT(LEPfromT, NUfromTsz), weight);
     FillHist1D(prefix+"MTr_W-", MT(LEPfromANTIT, NUfromANTITsz), weight);
 
-    top_xl_region[indx]     = 2.*LEPfromT.E()/Tsz.E() * weight;
-    antitop_xl_region[indx] = 2.*LEPfromANTIT.E()/ANTITsz.E() * weight;
+    top_xl_region     = 2.*LEPfromT.E()/Tsz.E() ;
+    antitop_xl_region = 2.*LEPfromANTIT.E()/ANTITsz.E() ;
 
     FillHist1D(prefix+"T_xl",      2.*LEPfromT.E()/Tsz.E(),         weight);
     FillHist1D(prefix+"ANTIT_xl",  2.*LEPfromANTIT.E()/ANTITsz.E(), weight);
 
-    cosTheta1r_region[indx] = lepCosTsz * weight;
-    cosTheta2r_region[indx] = lepCosANTITsz * weight;
+    cosTheta1r_region = lepCosTsz ;
+    cosTheta2r_region = lepCosANTITsz ;
 
     FillHist1D(prefix+"cosTheta1r", lepCosTsz, weight);
     FillHist1D(prefix+"cosTheta2r", lepCosANTITsz, weight);
@@ -1882,7 +1882,8 @@ int main(int argc, char* argv[]){
       FillHist1D(prefix+"cosTheta1r_mt2", lepCosTsz,     weight);
       FillHist1D(prefix+"cosTheta2r_mt2", lepCosANTITsz, weight);
     }
-    tree[prefix]->Fill();
+
+    tree[prefix(0, 1)+"T"]->Fill();
     
   }
   cout << difftime(time(NULL), start) << " s" << endl;
