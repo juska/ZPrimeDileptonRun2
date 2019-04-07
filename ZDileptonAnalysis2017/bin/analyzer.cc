@@ -705,14 +705,14 @@ int main(int argc, char* argv[]){
   for (int i=0; i<nDirs; i++) {
     tree[Form("%iT",i)] = new TTree(Form("%iT",i), Form("%iT",i));
 
-    tree[Form("%iT",i)]->Branch("weight_region",     &weight_region);
-    tree[Form("%iT",i)]->Branch("top_xl_region",     &top_xl_region);
-    tree[Form("%iT",i)]->Branch("antitop_xl_region", &antitop_xl_region);
-    tree[Form("%iT",i)]->Branch("cosTheta1r_region", &cosTheta1r_region);
-    tree[Form("%iT",i)]->Branch("cosTheta2r_region", &cosTheta2r_region);
-    tree[Form("%iT",i)]->Branch("rmin0_region",      &rmin0_region);
-    tree[Form("%iT",i)]->Branch("rmin1_region",      &rmin1_region);
-    tree[Form("%iT",i)]->Branch("sT_met_region",     &sT_met_region);
+    tree[Form("%iT",i)]->Branch(Form("weight_%i",i),     &weight_region);
+    tree[Form("%iT",i)]->Branch(Form("top_xl_%i",i),     &top_xl_region);
+    tree[Form("%iT",i)]->Branch(Form("antitop_xl_%i",i), &antitop_xl_region);
+    tree[Form("%iT",i)]->Branch(Form("cosTheta1r_%i",i), &cosTheta1r_region);
+    tree[Form("%iT",i)]->Branch(Form("cosTheta2r_%i",i), &cosTheta2r_region);
+    tree[Form("%iT",i)]->Branch(Form("rmin0_%i",i),      &rmin0_region);
+    tree[Form("%iT",i)]->Branch(Form("rmin1_%i",i),      &rmin1_region);
+    tree[Form("%iT",i)]->Branch(Form("sT_met_%i",i),     &sT_met_region);
   }
   //Set Branches//
 
@@ -1785,11 +1785,6 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"dilepmass", dilepmass, weight);
     FillHist1D(prefix+"lepept", lepept, weight);
     FillHist1D(prefix+"lepmpt", lepmpt, weight);
-
-    weight_region = weight;
-    rmin0_region = rmin0 ;
-    rmin1_region = rmin1 ;
-
     FillHist1D(prefix+"rmin0", rmin0, weight);
     FillHist1D(prefix+"rmin1", rmin1, weight);
     FillHist1D(prefix+"sumrmin", rmin0+rmin1, weight);
@@ -1820,8 +1815,6 @@ int main(int argc, char* argv[]){
 
     double sT = hT+lep0.Pt()+lep1.Pt();
     double sT_met = sT + met_corrpt;
-   
-    sT_met_region = sT_met ;   
     double masslljjm = (lep0+lep1+jet0+jet1+met).M();
 
     FillHist1D(prefix+"sT", sT, weight);
@@ -1837,7 +1830,6 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"cleanjet1pt", cleanjet1pt, weight);
     FillHist1D(prefix+"masslmin0", (lep0+minjet0).M(), weight);
     FillHist1D(prefix+"masslmin1", (lep1+minjet1).M(), weight);
-
     FillHist1D(prefix+"deta_lep", lep0.Eta() - lep1.Eta(), weight);
     FillHist1D(prefix+"deta_lepJet", (lep0+minjet0).Eta() - (lep1+minjet1).Eta(), weight);
     FillHist1D(prefix+"dphi_jet0met", fabs( deltaPhi( jet0.Phi(), met.Phi() ) ), weight);
@@ -1858,23 +1850,14 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"MT2r", basic_MT2r_332, weight);
     FillHist1D(prefix+"NUfromT_dzmin",  NUfromTs_dzmin_zW - NUfromTs_dzmin_zT,  weight);
     FillHist1D(prefix+"NUfromANTIT_dzmin",  NUfromANTITs_dzmin_zW - NUfromANTITs_dzmin_zT,  weight);
-
     FillHist1D(prefix+"M_T", M_T, weight);
     FillHist1D(prefix+"M_ANTIT", M_ANTIT, weight);
     FillHist1D(prefix+"MT_T", MT_T, weight);
     FillHist1D(prefix+"MT_ANTIT", MT_ANTIT, weight);
     FillHist1D(prefix+"MTr_W+", MT(LEPfromT, NUfromTsz), weight);
     FillHist1D(prefix+"MTr_W-", MT(LEPfromANTIT, NUfromANTITsz), weight);
-
-    top_xl_region     = 2.*LEPfromT.E()/Tsz.E() ;
-    antitop_xl_region = 2.*LEPfromANTIT.E()/ANTITsz.E() ;
-
     FillHist1D(prefix+"T_xl",      2.*LEPfromT.E()/Tsz.E(),         weight);
     FillHist1D(prefix+"ANTIT_xl",  2.*LEPfromANTIT.E()/ANTITsz.E(), weight);
-
-    cosTheta1r_region = lepCosTsz ;
-    cosTheta2r_region = lepCosANTITsz ;
-
     FillHist1D(prefix+"cosTheta1r", lepCosTsz, weight);
     FillHist1D(prefix+"cosTheta2r", lepCosANTITsz, weight);
 
@@ -1883,6 +1866,14 @@ int main(int argc, char* argv[]){
       FillHist1D(prefix+"cosTheta2r_mt2", lepCosANTITsz, weight);
     }
 
+    weight_region = weight;
+    rmin0_region = rmin0 ;
+    rmin1_region = rmin1 ;
+    top_xl_region     = 2.*LEPfromT.E()/Tsz.E() ;
+    antitop_xl_region = 2.*LEPfromANTIT.E()/ANTITsz.E() ; 
+    cosTheta1r_region = lepCosTsz ;
+    cosTheta2r_region = lepCosANTITsz ; 
+    sT_met_region = sT_met ; 
     tree[prefix(0, 1)+"T"]->Fill();
     
   }
