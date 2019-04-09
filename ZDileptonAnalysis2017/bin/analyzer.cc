@@ -144,7 +144,7 @@ int main(int argc, char* argv[]){
   cout << endl << nEntries << " Events" << endl;
   cout << "Processing " + inName << endl;
   TString name = inName( inName.Last('/')+1, inName.Last('.')-inName.Last('/')-1);
-  cout << name << endl;
+  //cout << name << endl;
   cout << "Channel: " + channel << endl;
 
   //Reweighting and SF Files//
@@ -575,7 +575,7 @@ int main(int argc, char* argv[]){
     m_Histos1D[hname] = new TH1D(hname,hname,100,0,100);
 
 // ... gen level mt2 using simplex method 
-    if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+    if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("RSGluon", TString::kIgnoreCase)) {
       hname = Form("%i_TOP_xl",i);
       m_Histos1D[hname] = new TH1D(hname,hname,40,0,2);
       hname = Form("%i_ANTITOP_xl",i);
@@ -699,20 +699,44 @@ int main(int argc, char* argv[]){
   double cosTheta1r_region, cosTheta2r_region;
   double rmin0_region, rmin1_region;
   double sT_met_region, weight_region;
+  double channel_region;
+  double MCTruth_MP_region, MCTruth_WP_region;
+  if (channel == "mm")     { channel_region = 0; }
+  else if (channel == "ee"){ channel_region = 1; }
+  else                     { channel_region = 2; }
+  
+
+  if ( name.Contains("zprime", TString::kIgnoreCase) || name.Contains("RSGluon", TString::kIgnoreCase)) {
+    cout << string(name) << endl;
+    std::size_t const p1 = string(name).find_first_of("0123456789");
+    if (p1 != std::string::npos){
+      std::size_t const p2 = string(name).find_first_not_of("0123456789", p1);
+      std::size_t const p3 = string(name).find("_W") + 2;
+      std::size_t const p4 = string(name).find_first_not_of("0123456789", p3);
+
+      MCTruth_MP_region = stoi(string(name).substr(p1, p2 != std::string::npos ? p2-p1 : p2));
+      if ( string(name).find("_W") != std::string::npos && p4 != std::string::npos)  MCTruth_WP_region = stoi(name(p3,p4-p3));
+      else                                                                           MCTruth_WP_region = 0.17;
+    }
+  }
 
   TFile* outFile = new TFile(outName,"RECREATE");
   map<TString, TTree*> tree;
   for (int i=0; i<nDirs; i++) {
-    tree[Form("%iT",i)] = new TTree(Form("%iT",i), Form("%iT",i));
+    tree[Form("T_%i",i)] = new TTree(Form("T_%i",i), Form("T_%i",i));
 
-    tree[Form("%iT",i)]->Branch(Form("weight_%i",i),     &weight_region);
-    tree[Form("%iT",i)]->Branch(Form("top_xl_%i",i),     &top_xl_region);
-    tree[Form("%iT",i)]->Branch(Form("antitop_xl_%i",i), &antitop_xl_region);
-    tree[Form("%iT",i)]->Branch(Form("cosTheta1r_%i",i), &cosTheta1r_region);
-    tree[Form("%iT",i)]->Branch(Form("cosTheta2r_%i",i), &cosTheta2r_region);
-    tree[Form("%iT",i)]->Branch(Form("rmin0_%i",i),      &rmin0_region);
-    tree[Form("%iT",i)]->Branch(Form("rmin1_%i",i),      &rmin1_region);
-    tree[Form("%iT",i)]->Branch(Form("sT_met_%i",i),     &sT_met_region);
+    tree[Form("T_%i",i)]->Branch(Form("top_xl_%i",i),     &top_xl_region);
+    tree[Form("T_%i",i)]->Branch(Form("antitop_xl_%i",i), &antitop_xl_region);
+    tree[Form("T_%i",i)]->Branch(Form("cosTheta1r_%i",i), &cosTheta1r_region);
+    tree[Form("T_%i",i)]->Branch(Form("cosTheta2r_%i",i), &cosTheta2r_region);
+    tree[Form("T_%i",i)]->Branch(Form("rmin0_%i",i),      &rmin0_region);
+    tree[Form("T_%i",i)]->Branch(Form("rmin1_%i",i),      &rmin1_region);
+    tree[Form("T_%i",i)]->Branch(Form("sT_met_%i",i),     &sT_met_region);
+
+    tree[Form("T_%i",i)]->Branch(Form("weight_%i",i),     &weight_region);
+    tree[Form("T_%i",i)]->Branch(Form("channel_%i",i),    &channel_region);   // 0 (mm), 1 (ee), 2 (em)
+    tree[Form("T_%i",i)]->Branch(Form("MCTruth_MP_%i",i),     &MCTruth_MP_region);
+    tree[Form("T_%i",i)]->Branch(Form("MCTruth_WP_%i",i),     &MCTruth_WP_region);
   }
   //Set Branches//
 
@@ -757,7 +781,7 @@ int main(int argc, char* argv[]){
     T->SetBranchAddress("wgt_env", &wgt_env);
     T->SetBranchAddress("wgt_rep", &wgt_rep);
   }
- if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+ if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("RSGluon", TString::kIgnoreCase)) {
     T->SetBranchAddress("nGen", &nGen);
     T->SetBranchAddress("gen_status", gen_status);
     T->SetBranchAddress("gen_PID", gen_PID);
@@ -840,7 +864,7 @@ int main(int argc, char* argv[]){
   int sameRlepjet=0;
   time_t start = time(NULL);
 
-  for (Long64_t n=0; n<nEntries; n++) {
+  for (Long64_t n=0; n<1000; n++) {
     T->GetEntry(n);
     TLorentzVector lep0, lep1;
     int lep0_charge = -999;
@@ -854,7 +878,7 @@ int main(int argc, char* argv[]){
       TLorentzVector NUtotal;                                                   // nu+nubar system
       TLorentzVector TOPvis, ANTITOPvis;                                        // visible decay products from (anti)top
       TVector3 betaTOP, betaANTITOP;
-      if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+      if (name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("RSGluon", TString::kIgnoreCase)) {
         for (int i=0; i<nGen; i++) {
           TLorentzVector TLV ;
           TLV.SetPtEtaPhiM( gen_pt[i], gen_eta[i], gen_phi[i], gen_mass[i] );
@@ -1642,7 +1666,6 @@ int main(int argc, char* argv[]){
       jet0btag = newBTag( rands[jet0index], jet0pt, jetflavor0, jet0btag, *eff0, variation0 );
       jet1btag = newBTag( rands[jet1index], jet1pt, jetflavor1, jet1btag, *eff1, variation1 );
     }
-    delete rand;
 
     double rl0l1 = lep0.DeltaR(lep1);
     double lepept=0, lepmpt=0;
@@ -1838,7 +1861,7 @@ int main(int argc, char* argv[]){
     FillHist1D(prefix+"nPV", nPV, weight);
 
     if (isMC) {
-      if ( name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("gkk", TString::kIgnoreCase)) {
+      if ( name.Contains("ttbar", TString::kIgnoreCase) || name.Contains("zprime", TString::kIgnoreCase) || name.Contains("RSGluon", TString::kIgnoreCase)) {
        FillHist1D(prefix+"TOP_xl",     top_xl, weight);
        FillHist1D(prefix+"ANTITOP_xl", antitop_xl, weight);
        FillHist1D(prefix+"cosTheta1", lepCosTOP, weight);
@@ -1874,7 +1897,13 @@ int main(int argc, char* argv[]){
     cosTheta1r_region = lepCosTsz ;
     cosTheta2r_region = lepCosANTITsz ; 
     sT_met_region = sT_met ; 
-    tree[prefix(0, 1)+"T"]->Fill();
+    if ( !name.Contains("zprime", TString::kIgnoreCase) && !name.Contains("RSGluon", TString::kIgnoreCase)) {
+      MCTruth_MP_region = rand->Uniform(500,9000); // signal mass range
+      MCTruth_WP_region = rand->Uniform(0.001,0.3);// signal width range
+    }
+    tree["T_"+prefix(0, 1)]->Fill();
+
+    delete rand;
     
   }
   cout << difftime(time(NULL), start) << " s" << endl;
