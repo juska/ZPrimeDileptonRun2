@@ -735,8 +735,8 @@ int main(int argc, char* argv[]){
 
     tree[Form("T_%i",i)]->Branch(Form("weight_%i",i),     &weight_region);
     tree[Form("T_%i",i)]->Branch(Form("channel_%i",i),    &channel_region);   // 0 (mm), 1 (ee), 2 (em)
-    tree[Form("T_%i",i)]->Branch(Form("MCTruth_MP_%i",i),     &MCTruth_MP_region);
-    tree[Form("T_%i",i)]->Branch(Form("MCTruth_WP_%i",i),     &MCTruth_WP_region);
+    tree[Form("T_%i",i)]->Branch(Form("MCTruth_MP_%i",i), &MCTruth_MP_region);
+    tree[Form("T_%i",i)]->Branch(Form("MCTruth_WP_%i",i), &MCTruth_WP_region);
   }
   //Set Branches//
 
@@ -864,7 +864,7 @@ int main(int argc, char* argv[]){
   int sameRlepjet=0;
   time_t start = time(NULL);
 
-  for (Long64_t n=0; n<1000; n++) {
+  for (Long64_t n=0; n<nEntries; n++) {
     T->GetEntry(n);
     TLorentzVector lep0, lep1;
     int lep0_charge = -999;
