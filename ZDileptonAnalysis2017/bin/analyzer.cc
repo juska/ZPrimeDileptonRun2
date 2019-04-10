@@ -732,10 +732,10 @@ int main(int argc, char* argv[]){
     tree[Form("T_%i",i)]->Branch(Form("rmin0_%i",i),      &rmin0_region);
     tree[Form("T_%i",i)]->Branch(Form("rmin1_%i",i),      &rmin1_region);
     tree[Form("T_%i",i)]->Branch(Form("sT_met_%i",i),     &sT_met_region);
+    tree[Form("T_%i",i)]->Branch(Form("MT2r_%i",i),       &basic_MT2r_region);
 
     tree[Form("T_%i",i)]->Branch(Form("weight_%i",i),     &weight_region);
     tree[Form("T_%i",i)]->Branch(Form("channel_%i",i),    &channel_region);   // 0 (mm), 1 (ee), 2 (em)
-    tree[Form("T_%i",i)]->Branch(Form("MT2r_%i",i),       &basic_MT2r_region);
     tree[Form("T_%i",i)]->Branch(Form("MCTruth_MP_%i",i), &MCTruth_MP_region);
     tree[Form("T_%i",i)]->Branch(Form("MCTruth_WP_%i",i), &MCTruth_WP_region);
 
