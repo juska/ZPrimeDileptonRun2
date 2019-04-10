@@ -47,6 +47,10 @@ def main() :
   uncerts = args.uncertainties
   if args.noUncerts : uncerts = []
 
+  print "drCuts:", " ".join(drs)
+  print "channels:", " ".join(channels)
+  print "uncertainties:", " ".join(uncerts)
+
   era = "Fall17_17Nov2017"
   periods = ("B", "C", "DE", "F")
   version = "32"
