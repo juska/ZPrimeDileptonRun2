@@ -699,7 +699,7 @@ int main(int argc, char* argv[]){
   double cosTheta1r_region, cosTheta2r_region;
   double rmin0_region, rmin1_region;
   double sT_met_region, weight_region;
-  double channel_region;
+  double channel_region, basic_MT2r_region;
   double MCTruth_MP_region, MCTruth_WP_region;
   if (channel == "mm")     { channel_region = 0; }
   else if (channel == "ee"){ channel_region = 1; }
@@ -715,7 +715,7 @@ int main(int argc, char* argv[]){
       std::size_t const p4 = string(name).find_first_not_of("0123456789", p3);
 
       MCTruth_MP_region = stoi(string(name).substr(p1, p2 != std::string::npos ? p2-p1 : p2));
-      if ( string(name).find("_W") != std::string::npos && p4 != std::string::npos)  MCTruth_WP_region = stoi(name(p3,p4-p3));
+      if ( string(name).find("_W") != std::string::npos && p4 != std::string::npos)  MCTruth_WP_region = double(stoi(name(p3,p4-p3))/MCTruth_MP_region);
       else                                                                           MCTruth_WP_region = 0.17;
     }
   }
@@ -735,8 +735,10 @@ int main(int argc, char* argv[]){
 
     tree[Form("T_%i",i)]->Branch(Form("weight_%i",i),     &weight_region);
     tree[Form("T_%i",i)]->Branch(Form("channel_%i",i),    &channel_region);   // 0 (mm), 1 (ee), 2 (em)
+    tree[Form("T_%i",i)]->Branch(Form("MT2r_%i",i),       &basic_MT2r_region);
     tree[Form("T_%i",i)]->Branch(Form("MCTruth_MP_%i",i), &MCTruth_MP_region);
     tree[Form("T_%i",i)]->Branch(Form("MCTruth_WP_%i",i), &MCTruth_WP_region);
+
   }
   //Set Branches//
 
@@ -1897,6 +1899,7 @@ int main(int argc, char* argv[]){
     cosTheta1r_region = lepCosTsz ;
     cosTheta2r_region = lepCosANTITsz ; 
     sT_met_region = sT_met ; 
+    basic_MT2r_region = basic_MT2r_332 ;
     if ( !name.Contains("zprime", TString::kIgnoreCase) && !name.Contains("RSGluon", TString::kIgnoreCase)) {
       MCTruth_MP_region = rand->Uniform(500,9000); // signal mass range
       MCTruth_WP_region = rand->Uniform(0.001,0.3);// signal width range
