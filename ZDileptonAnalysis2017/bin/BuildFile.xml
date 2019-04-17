@@ -6,3 +6,4 @@
 <use name="PhysicsTools/Heppy"/>
 <use name="oxbridgekinetics-1.2"/>
 <bin name="analyzer" file="analyzer.cc"/>
+<bin name="plot" file="plot.cc"/>
