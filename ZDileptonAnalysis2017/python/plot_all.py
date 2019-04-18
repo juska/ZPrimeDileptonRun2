@@ -1,5 +1,5 @@
 # chad harrington and bahareh roozbahani 2019
-# python -u python/plot_all.py -drs ON OFF -c mm em -cuts 4 7 > & log.txt &
+# python -u python/plot_all.py -dr OFF -c mm em -cuts 4 7 > & log.txt &
 
 import os
 import argparse
@@ -14,9 +14,9 @@ cuts_default = ["0", "1", "2", "3", "4", "5", "6", "7"]
 
 def handleArgs() :
   parser = argparse.ArgumentParser()
-  parser.add_argument( "-drs", "--drCuts", nargs='+', required=False,
-                       help="drCuts to run over, like -drs OFF ON",
-                       default=drs_default
+  parser.add_argument( "-dr", "--drCut", type=str, action='store', required=False,
+                       help="drCut, like -dr OFF",
+                       default="OFF"
                      )
   parser.add_argument( "-c", "--channels", nargs='+', required=False,
                        help="channels to run over, like -c mm",
@@ -36,11 +36,12 @@ def main() :
   start = time.time()
   args = handleArgs()
 
-  drs = args.drCuts
+  dr = args.drCut
+  if dr not in drs_default : raise Exception(dr + " not found!")
   channels = args.channels
   cuts = args.cuts
 
-  print "drCuts:", " ".join(drs)
+  print "drCut: " + dr
   print "channels:", " ".join(channels)
   print "cuts:", " ".join(cuts)
 
@@ -120,32 +121,30 @@ def main() :
   else :                  subymin = '-2'
 
   os.system( "mkdir " + args.outdir )
-  for drcut in drs :
-    if drcut not in drs_default : print drcut + " not found!"; continue
-    os.system( "mkdir " + args.outdir + "/" + drcut )
+  for channel in channels :
+    if channel not in channels_default : print channel + " not found!"; continue
+    os.system( "mkdir " + args.outdir + "/" + channel )
 
-    for channel in channels :
-      if channel not in channels_default : print channel + " not found!"; continue
-      os.system( "mkdir " + args.outdir + "/" + drcut + "/" + channel )
+    for cutNum in cuts :
+      if cutNum not in cuts_default : print cutNum + " not found!"; continue
+      os.system( "mkdir " + args.outdir + "/" + channel + "/" + cutNum )
 
-      for cutNum in cuts :
-        if cutNum not in cuts_default : print cutNum + " not found!"; continue
-        os.system( "mkdir " + args.outdir + "/" + drcut + "/" + channel + "/" + cutNum )
+      for plotTup in plotTups :
 
-        for plotTup in plotTups :
+        logy = 'false'
+        if 'pt' in plotTup.hname or 'sT' in plotTup.hname or plotTup.hname == 'jethT' or plotTup.hname == 'masslljjm' :
+          logy = 'true'
 
-          logy = 'false'
-          if 'pt' in plotTup.hname or 'sT' in plotTup.hname or plotTup.hname == 'jethT' or plotTup.hname == 'masslljjm' :
-            logy = 'true'
+        rebin = '2'
+        if 'Good' in plotTup.hname or 'perp' in plotTup.hname or plotTup.hname == 'nbtag' :
+          rebin = '1'
 
-          rebin = '2'
-          if 'Good' in plotTup.hname or 'perp' in plotTup.hname or plotTup.hname == 'nbtag' :
-            rebin = '1'
+        writePars( channel_dict[channel][0], channel_dict[channel][1], args.outdir, channel, cutNum,
+                   plotTup.hname, logy, plotTup.xmin, plotTup.xmax, plotTup.xtitle, subplot, subymin, rebin
+                 )
+        os.system( "plot plot_pars.txt" )
 
-          writePars( channel_dict[channel][0], channel_dict[channel][1], args.outdir, channel, cutNum,
-                     plotTup.hname, logy, plotTup.xmin, plotTup.xmax, plotTup.xtitle, subplot, subymin, rebin
-                   )
-          os.system( "plot plot_pars.txt" )
+  print "{} seconds".format( time.time()-start )
 
 def writePars( dfile, dir, odir, channel, cut, hname, logy, xmin, xmax, xtitle, subplot, subymin, rebin ) :
 
@@ -153,9 +152,7 @@ def writePars( dfile, dir, odir, channel, cut, hname, logy, xmin, xmax, xtitle, 
           "plotData       true",
           "dir            {}/{}/".format( dir, channel ),
           "channel        {}".format( channel ),
-          "fileNames      TTbar0-700 TTbar700-1000_total TTbar1000-inf_total TTsemilep wjets ww wz zz DYJetsToLL_M10to50 DYJetsToLL_M50 ST_t-channel_top_4f ST_t-channel_antitop_4f ST_tW_top_5f_inclusiveDecays_v2 ST_tW_antitop_5f_v2",
-          "zprime         ZprimeToTT_M3000_W300_total",
-          "gluon          RSGluonToTT_M-3000",
+          "fileNames      TTbar0-700 TTbar700-1000_total TTbar1000-inf_total TTsemilep wjets ww wz zz DYJetsToLL_M10to50 DYJetsToLL_M50 ST_t-channel_top_4f ST_t-channel_antitop_4f ST_tW_top_5f_inclusiveDecays_v2 ST_tW_antitop_5f_v2 ZprimeToTT_M3000_W300_total RSGluonToTT_M-3000",
           "sigScale       10",
           "leftText       CMS",
           "rightText      Run 2017 - 41.9 fb^{-1} (13 TeV)",

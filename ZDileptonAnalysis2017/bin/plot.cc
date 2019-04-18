@@ -26,12 +26,14 @@ void setPars(const string& parFile);
 void setStyle();
 void drawText();
 bool isBkg( const TString& set ) { return set=="ttbar" || set=="dy" || set=="wjet" || set=="st" || set=="vv"; }
+bool isSpecialPlot( const TString& hname ) { return hname.Contains("MT2s") || hname.Contains("TOP_xl") ||
+                                                    hname.Contains("ANTITOP_xl") || hname.Contains("cosTheta1") || hname.Contains("cosTheta2"); }
 
 //parameters- edit in plot_pars.txt
 vector<TString> fileNames, systematics;
 vector<double> rebin;
 map<TString, float> sys_norm;
-TString dataFileName, dir, outName, channel, theta, postfilename, region, hname, rightText, subplot, xtitle, zprime, gluon;
+TString dataFileName, dir, outName, channel, theta, postfilename, region, hname, rightText, subplot, xtitle;
 float xmin, xmax, ymin, ymax, subymin, subymax, sigScale;
 bool logx=false, logy=false, plotData=false, plotImpact=false, fit=false;
 static Int_t MLightGray = TColor::GetColor( "#dddddd" );
@@ -54,20 +56,17 @@ int main(int argc, char* argv[]) {
 
   fileNames.push_back( dataFileName );
   for (auto const& fname : fileNames) {
-
     TString set = "";
 
     if      ( fname == dataFileName )                                                set = "DATA";
-    else if ( fname.Contains("gluon", TString::kIgnoreCase) ||
-              fname.Contains("zprime", TString::kIgnoreCase) ) {
-
+    else if ( fname.Contains("gluon", TString::kIgnoreCase) ) {                      set = "gluon";
       if (theta == "gkk") {
-        if ( !fname.Contains("gluon", TString::kIgnoreCase) ) continue;
         TString mass = fname(fname.Index("M-")+2, fname.Length()-fname.Index("M-")-2);
         set = "gkk" + mass;
       }
-      else if (theta == "zp1" || theta == "zp10" || theta == "zp30") {
-        if ( !fname.Contains("zprime", TString::kIgnoreCase) ) continue;
+    }
+    else if ( fname.Contains("zprime", TString::kIgnoreCase) ) {                     set = "zprime";
+      if (theta == "zp1" || theta == "zp10" || theta == "zp30") {
 
         TString mass = fname(fname.Index("M-")+2, fname.Index("_W")-fname.Index("M-")-2);
         TString width = fname(fname.Index("W-")+2, fname.Length()-fname.Index("W-")-2);
@@ -80,18 +79,12 @@ int main(int argc, char* argv[]) {
         else if (theta == "zp10" && percent != 10) continue;
         else if (theta == "zp30" && percent != 30) continue;
       }
-      else {
-        if      ( fname == zprime )                                                  set = "zprime";
-        else if ( fname == gluon )                                                   set = "gluon";
-        else continue;
-      }
     }
-
-    else if ( fname.Contains("ttbar", TString::kIgnoreCase) )                        set = "ttbar";
+    else if ( fname.Contains("ttbar", TString::kIgnoreCase) ||
+              fname.Contains("TTsemilep", TString::kIgnoreCase) )                    set = "ttbar";
     else if ( fname.Contains("dy", TString::kIgnoreCase) )                           set = "dy";
     else if ( fname.Contains("wjet", TString::kIgnoreCase) )                         set = "wjet";
-    else if ( fname.Contains("st", TString::kIgnoreCase) ||
-              fname.Contains("sat", TString::kIgnoreCase) )                          set = "st";
+    else if ( fname.Contains("st_", TString::kIgnoreCase) )                          set = "st";
     else if ( fname.Contains("ww", TString::kIgnoreCase) ||
               fname.Contains("wz", TString::kIgnoreCase) ||
               fname.Contains("zz", TString::kIgnoreCase) )                           set = "vv";
@@ -99,12 +92,15 @@ int main(int argc, char* argv[]) {
               ( (channel == "mm" &&  fname.Contains("Mu", TString::kIgnoreCase)) ||
                 (channel == "ee" && !fname.Contains("Mu", TString::kIgnoreCase)) ||
                 (channel == "em" &&  fname.Contains("Mu", TString::kIgnoreCase)) ) ) set = "wjet";
-    else                                                                             continue;
+    else {
+      cout << fname << " unknown!" << endl;
+      continue;
+    }
 
     TFile* file = TFile::Open( dir + fname + "_" + channel + ".root" );
     if (!file) return -1;
     TH1D* h = (TH1D*) file->FindObjectAny(hname);
-    if (!h) { cout << hname << " not found!" << endl;  return -1; }
+    if (!h) { cout << hname << " not found in " << fname << "!" << endl;  continue; }
     if ( theta!="gkk" && theta!="zp1" && theta!="zp10" && theta!="zp30" && (set=="zprime" || set=="gluon") ) h->Scale(sigScale);
 
     if (rebin.size() == 1) h->Rebin(rebin[0]);
@@ -167,7 +163,25 @@ int main(int argc, char* argv[]) {
       }
     }
   }
-  int nBins = m_NOM["DATA"]->GetNbinsX();
+  //check all sets are filled
+  for ( const auto& pair : labels ) {
+    TString set = pair.first;
+    if ( m_NOM[set]==0 ) {
+      if ( isSpecialPlot(hname) && set!="ttbar" && set!="gluon" && set!="zprime" ) continue;
+
+      cout << set << " not filled!" << endl;
+      return -1;
+    }
+  }
+  if ( m_NOM["DATA"]==0 && !isSpecialPlot(hname) ) {
+    cout << "Data not filled!" << endl;
+    return -1;
+  }
+  if ( m_NOM["DATA"]==0 ) {
+    plotData = false;
+    subplot = "false";
+  }
+  int nBins = m_NOM["ttbar"]->GetNbinsX();
 
   /// THETA output ///
 
@@ -305,10 +319,11 @@ int main(int argc, char* argv[]) {
 
   /// PLOTTING ///
 
-  m_NOM["DATA"]->SetMarkerStyle(20);
-  m_NOM["DATA"]->SetLineColor(kBlack);
-  m_NOM["DATA"]->SetMarkerSize(0.45);
-
+  if ( m_NOM["DATA"]!=0 ) {
+    m_NOM["DATA"]->SetMarkerStyle(20);
+    m_NOM["DATA"]->SetLineColor(kBlack);
+    m_NOM["DATA"]->SetMarkerSize(0.45);
+  }
   background->SetFillStyle(3245);
   background->SetFillColor(LightGray);
   gStyle->SetHatchesLineWidth(1);
@@ -316,15 +331,22 @@ int main(int argc, char* argv[]) {
 
   m_NOM["ttbar"]->SetLineColor(2);
   m_NOM["ttbar"]->SetFillColor(2);
-  m_NOM["dy"]->SetLineColor(8);
-  m_NOM["dy"]->SetFillColor(8);
-  m_NOM["wjet"]->SetLineColor(4);
-  m_NOM["wjet"]->SetFillColor(4);
-  m_NOM["vv"]->SetLineColor(6);
-  m_NOM["vv"]->SetFillColor(6);
-  m_NOM["st"]->SetLineColor(28);
-  m_NOM["st"]->SetFillColor(28);
-
+  if ( m_NOM["dy"]!=0 ) {
+    m_NOM["dy"]->SetLineColor(8);
+    m_NOM["dy"]->SetFillColor(8);
+  }
+  if ( m_NOM["wjet"]!=0 ) {
+    m_NOM["wjet"]->SetLineColor(4);
+    m_NOM["wjet"]->SetFillColor(4);
+  }
+  if ( m_NOM["vv"]!=0 ) {
+    m_NOM["vv"]->SetLineColor(6);
+    m_NOM["vv"]->SetFillColor(6);
+  }
+  if ( m_NOM["st"]!=0 ) {
+    m_NOM["st"]->SetLineColor(28);
+    m_NOM["st"]->SetFillColor(28);
+  }
   m_NOM["zprime"]->SetLineColor(12);
   m_NOM["zprime"]->SetLineWidth(2);
   m_NOM["gluon"]->SetLineColor(9);
@@ -345,13 +367,13 @@ int main(int argc, char* argv[]) {
   if ( plotData && (subplot=="ratio" || subplot=="pull") ) {
     top->SetTopMargin(0.065);
     top->SetBottomMargin(0.03);
-    top->SetLeftMargin(0.19);
-    top->SetRightMargin(0.05);
+    top->SetLeftMargin(0.13);
+    top->SetRightMargin(0.04);
     top->Draw();
     bottom->SetTopMargin(0.03);
     bottom->SetBottomMargin(0.35);
-    bottom->SetLeftMargin(0.19);
-    bottom->SetRightMargin(0.05);
+    bottom->SetLeftMargin(0.13);
+    bottom->SetRightMargin(0.04);
     bottom->SetGridy();
     bottom->Draw();
     top->cd();
@@ -360,20 +382,24 @@ int main(int argc, char* argv[]) {
   if (logy) gPad->SetLogy();
 
   TH1D* hist=0;
-  if (rebin.size() == 1) hist = new TH1D("hist", "hist", nBins, m_NOM["DATA"]->GetBinLowEdge(1), m_NOM["DATA"]->GetBinLowEdge(nBins+1));
+  if (rebin.size() == 1) hist = new TH1D("hist", "hist", nBins, m_NOM["ttbar"]->GetBinLowEdge(1), m_NOM["ttbar"]->GetBinLowEdge(nBins+1));
   else                   hist = new TH1D("hist", "hist", rebin.size()-1, &rebin[0]);
 
   if ( plotData && (subplot=="ratio" || subplot=="pull") ) {
     hist->GetXaxis()->SetTickLength(0.03/t_scale);
     hist->GetXaxis()->SetLabelSize(0);
     hist->GetYaxis()->SetTitleSize(0.05/t_scale);
-    hist->GetYaxis()->SetTitleOffset(1.5*t_scale);
+    hist->GetYaxis()->SetTitleOffset(1.2*t_scale);
     hist->GetYaxis()->SetLabelSize(0.03/t_scale);
   }
   else {
     hist->GetXaxis()->SetTitle(xtitle);
-    hist->GetXaxis()->SetTitleOffset(1);
-    hist->GetYaxis()->SetTitleOffset(1.2);
+    hist->GetXaxis()->SetTitleOffset(0.9);
+    hist->GetXaxis()->SetTitleSize(0.05);
+    hist->GetXaxis()->SetLabelSize(0.03);
+    hist->GetYaxis()->SetTitleOffset(1);
+    hist->GetYaxis()->SetTitleSize(0.05);
+    hist->GetYaxis()->SetLabelSize(0.03);
 
     if (logx) { hist->GetXaxis()->SetNoExponent(); hist->GetXaxis()->SetMoreLogLabels(); }
   }
@@ -390,6 +416,7 @@ int main(int argc, char* argv[]) {
   hist->Draw();
   int legEntries = labels.size(); // don't include bkg uncert in legend
   if (!plotData) legEntries--;
+  if ( m_NOM["dy"]==0 ) legEntries = 3;
 
   TLegend* leg = 0;
   if ( plotData && (subplot=="ratio" || subplot=="pull") ) {
@@ -408,7 +435,7 @@ int main(int argc, char* argv[]) {
 
   for (auto const& i_set : labels) {
     TString set = i_set.first;
-    if (set=="bkg") continue;
+    if (set=="bkg" || m_NOM[set]==0) continue;
 
     leg->AddEntry( m_NOM[set], i_set.second.Data(), (set=="gluon" || set=="zprime" ? "L" : "F") );
   }
@@ -481,7 +508,7 @@ int main(int argc, char* argv[]) {
     bhist->GetYaxis()->SetRangeUser(subymin, subymax);
     bhist->GetYaxis()->SetNdivisions(5, 3, 0);
     bhist->GetYaxis()->SetLabelSize(0.03/b_scale);
-    bhist->GetYaxis()->SetTitleOffset(1.5*b_scale);
+    bhist->GetYaxis()->SetTitleOffset(1.1*b_scale);
     bhist->GetYaxis()->SetTitle(subytitle);
     bhist->GetYaxis()->SetTitleSize(0.05/b_scale);
     bhist->GetYaxis()->CenterTitle(true);
@@ -700,8 +727,6 @@ void setPars(const string& parFile) {
     else if (var == "rightText")    rightText = line.data();
     else if (var == "subplot")      subplot = line.data();
     else if (var == "xtitle")       xtitle = line.data();
-    else if (var == "zprime")       zprime = line.data();
-    else if (var == "gluon")        gluon = line.data();
     else if (var == "sigScale")     sigScale = stof(line);
     else if (var == "xmin")         xmin = stof(line);
     else if (var == "xmax")         xmax = stof(line);
@@ -722,8 +747,8 @@ void setPars(const string& parFile) {
 void setStyle(){
   gStyle->SetPadTopMargin(0.05);
   gStyle->SetPadBottomMargin(0.13);
-  gStyle->SetPadLeftMargin(0.16);
-  gStyle->SetPadRightMargin(0.02);
+  gStyle->SetPadLeftMargin(0.13);
+  gStyle->SetPadRightMargin(0.04);
 
   gStyle->SetOptStat(0);
   gStyle->SetOptTitle(0);

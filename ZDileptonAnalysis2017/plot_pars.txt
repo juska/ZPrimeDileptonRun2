@@ -1,21 +1,19 @@
 dataFileName   muon
 plotData       true
-dir            /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/OFF/mm/
-channel        mm
-fileNames      TTbar0-700 TTbar700-1000_total TTbar1000-inf_total TTsemilep wjets ww wz zz DYJetsToLL_M10to50 DYJetsToLL_M50 ST_t-channel_top_4f ST_t-channel_antitop_4f ST_tW_top_5f_inclusiveDecays_v2 ST_tW_antitop_5f_v2
-zprime         ZprimeToTT_M3000_W300_total
-gluon          RSGluonToTT_M-3000
+dir            /uscms_data/d3/cihar29/newAnalysis/CMSSW_9_4_12/src/ZDileptonAnalysis2017/ZDileptonAnalysis2017/OFF/em/
+channel        em
+fileNames      TTbar0-700 TTbar700-1000_total TTbar1000-inf_total TTsemilep wjets ww wz zz DYJetsToLL_M10to50 DYJetsToLL_M50 ST_t-channel_top_4f ST_t-channel_antitop_4f ST_tW_top_5f_inclusiveDecays_v2 ST_tW_antitop_5f_v2 ZprimeToTT_M3000_W300_total RSGluonToTT_M-3000
 sigScale       10
 leftText       CMS
 rightText      Run 2017 - 41.9 fb^{-1} (13 TeV)
 logx           false
 logy           true
 subplot        ratio
-outName        plots/mm/7/jet0pt
-hname          7_jet0pt
-xmin           0
-xmax           1000
-xtitle         Leading Jet p_{T} [GeV]
+outName        plots/em/7/cosTheta2
+hname          7_cosTheta2
+xmin           -1
+xmax           1
+xtitle         cosTheta2
 ymin           0
 subymin        0
 subymax        2
