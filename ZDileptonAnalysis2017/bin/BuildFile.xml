@@ -7,3 +7,4 @@
 <use name="oxbridgekinetics-1.2"/>
 <bin name="analyzer" file="analyzer.cc"/>
 <bin name="plot" file="plot.cc"/>
+<bin name="createLog" file="createLog.cc"/>

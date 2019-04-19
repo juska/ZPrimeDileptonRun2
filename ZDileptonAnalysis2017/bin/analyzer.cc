@@ -1919,7 +1919,7 @@ int main(int argc, char* argv[]){
 */
   //Cutflow Table//
   cout<<"===================================================================================================\n";
-  cout<<"                                     Cut Flow Table: " + inName( inName.Last('/')+1, inName.Index('.')-inName.Last('/')-1 ) + "\n";
+  cout<<"                                     Cut Flow Table: " + name + "\n";
   cout<<"===================================================================================================\n";
 
   cout<<      "                               |||          Nevent          |||     Efficiency (Relative Efficiency)";
