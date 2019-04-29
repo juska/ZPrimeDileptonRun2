@@ -1,3 +1,4 @@
+/// run using ./run_ROC.sh signal_sample background_sample region
 TGraph* Rocgraph(TH1* sig, TH1* bkg);
 TGraph* CRgraph(TH1* hist);
 void setPars(TString parFile);
@@ -7,7 +8,7 @@ TString bkgLabel, sigLabel;
 TString varName;
 
 
-void ROC(TString file=""){
+void ROC(TString file="ROC_pars.txt"){
 
   setStyle();
   if (file.IsNull()){
@@ -24,32 +25,23 @@ void ROC(TString file=""){
   TH1D* sigHist = (TH1D*) sigFile->FindObjectAny(varName);
 
   if (bkgHist->GetNbinsX() != sigHist->GetNbinsX()){
-    cout << Form("background and signal have different %s binning", 
-varName.Data()) << endl;
+    cout << Form("background and signal have different %s binning", varName.Data()) << endl;
     return -1;
   }
 
-  TString bkgSample = bkgName( bkgName.Last('/')+1, 
-bkgName.Last('_')-bkgName.Last('/')-1);
-  TString sigSample = sigName( sigName.Last('/')+1, 
-sigName.Last('_')-sigName.Last('/')-1);
+  TString bkgSample = bkgName( bkgName.Last('/')+1, bkgName.Last('_')-bkgName.Last('/')-1);
+  TString sigSample = sigName( sigName.Last('/')+1, sigName.Last('_')-sigName.Last('/')-1);
   varName = varName( varName.Index('_')+1, varName.Length());
 
 
-  vector< pair<TString, TString> > labels = { {"ttbar", "t#bar{t}"}, 
-{"dy", "Z/#gamma*#rightarrowl^{+}l^{-}"}, {"st", "Single-Top"}, {"vv", 
-"VV"}, 
-					      {"wjet", "W+Jets"}, 
-{"gluon", "g_{kk}"}, {"zprime", "Z'"}};
+  vector< pair<TString, TString> > labels = { {"ttbar", "t#bar{t}"}, {"dy", "Z/#gamma*#rightarrowl^{+}l^{-}"},
+					      {"st", "Single-Top"}, {"vv", "VV"}, 
+					      {"wjet", "W+Jets"}, {"gluon", "g_{kk}"}, {"zprime", "Z'"}};
 
-  map<TString, TString> axis = {{"cosTheta1","cos #theta_{top,lep}"}, 
-{"cosTheta2","cos #theta_{antitop,lep}"},
-				   {"TOP_xl","#chi_{L}^{t}"}, 
-{"ANTITOP_xl","#chi_{L}^{#bar{t}}"},
-			           {"MT2s","MT2(GeV)"}, {"sT_met","S_{T} 
-[GeV]"},
-				   {"rmin0","DeltaR_{min0}"}, 
-{"rmin1","DeltaR_{min1}"}};
+  map<TString, TString> axis = {{"cosTheta1","cos #theta_{top,lep}"}, {"cosTheta2","cos #theta_{antitop,lep}"},
+				   {"TOP_xl","#chi_{L}^{t}"}, {"ANTITOP_xl","#chi_{L}^{#bar{t}}"},
+			           {"MT2s","MT2(GeV)"}, {"sT_met","S_{T} [GeV]"},
+				   {"rmin0","DeltaR_{min0}"}, {"rmin1","DeltaR_{min1}"}};
 
   TCanvas* c = new TCanvas("c", "c", 600, 600);
   c->cd();
@@ -63,8 +55,7 @@ sigName.Last('_')-sigName.Last('/')-1);
 
   TGraph* gROC = Rocgraph(sigHist, bkgHist); 
   double * X = gROC->GetX();
-  TF1* f = new TF1("f",[&](double *X, double *){ return gROC->Eval(X[0]); 
-},0,1,1);
+  TF1* f = new TF1("f",[&](double *X, double *){ return gROC->Eval(X[0]); },0,1,1);
   double integral = f->Integral(0,1);
   
   gROC->SetMarkerColor(kRed);
@@ -80,15 +71,12 @@ sigName.Last('_')-sigName.Last('/')-1);
   text.SetTextFont(42);
 
   for (auto const& i_sample : labels) {
-    if(bkgSample.Contains(i_sample.first, TString::kIgnoreCase)) bkgLabel 
-= i_sample.second;
-    if(sigSample.Contains(i_sample.first, TString::kIgnoreCase)) sigLabel 
-= i_sample.second;    
+    if(bkgSample.Contains(i_sample.first, TString::kIgnoreCase)) bkgLabel = i_sample.second;
+    if(sigSample.Contains(i_sample.first, TString::kIgnoreCase)) sigLabel = i_sample.second;    
   }
   text.DrawLatex(0.15, 0.18, Form("AUC = %4.3f",  integral)); 
 
-  text.DrawLatex(0.15, 0.28, Form("Discriminator: %s", 
-axis[varName].Data()));
+  text.DrawLatex(0.15, 0.28, Form("Discriminator: %s", axis[varName].Data()));
   text.DrawLatex(0.6, 0.8, Form("Background: %s", bkgLabel.Data())); 
   text.DrawLatex(0.6, 0.7, Form("Signal: %s",     sigLabel.Data())); 
   c->Print(Form("roc_%s.pdf",varName.Data()));
@@ -102,8 +90,7 @@ axis[varName].Data()));
   TH1D* h_temp2 = new TH1D("h2", "h2", var_bins.size()-1,  &var_bins[0]);
   h_temp2->GetYaxis()->SetRangeUser(0,1);
   h_temp2->GetXaxis()->SetTitle(axis[varName].Data());
-  
-h_temp2->GetYaxis()->SetTitle(Form("#Rgothic_{%s}",axis[varName].Data()));
+  h_temp2->GetYaxis()->SetTitle(Form("#Rgothic_{%s}",axis[varName].Data()));
   h_temp2->GetXaxis()->SetTitleOffset(0.9);
   h_temp2->GetYaxis()->SetTitleOffset(0.9);
   h_temp2->Draw();
@@ -143,11 +130,8 @@ TGraph* Rocgraph(TH1* sig, TH1* bkg) {
     double BKG[nbins];
     for ( int i = 0; i != nbins; ++i ) {
       SIG[nbins-i-1] = sig->Integral(nbins-i,nbins)/sig->Integral();
-      BKG[nbins-i-1] = 1.0 - ( 
-bkg->Integral(nbins-i,nbins)/bkg->Integral());
+      BKG[nbins-i-1] = 1.0 - ( bkg->Integral(nbins-i,nbins)/bkg->Integral());
     }
-    for ( int i = 0; i != nbins+1; ++i )  cout << i << "\t" << SIG[i] << 
-"\t" << BKG[i] << endl;
     TGraph *gROC = new TGraph(nbins,SIG,BKG);    
     return gROC;
 }
@@ -183,8 +167,7 @@ void setPars(TString parFile) {
     line.erase(0, delim_pos + 1);
 
     while (line.at(0) == ' ') line.erase(0, 1);
-    while (line.at(line.length()-1) == ' ') line.erase(line.length()-1, 
-line.length());
+    while (line.at(line.length()-1) == ' ') line.erase(line.length()-1, line.length());
 
     if (var == "bkgName")       bkgName = line;
     else if (var == "sigName")  sigName = line;
@@ -262,8 +245,7 @@ void setStyle(){
   //tdrStyle->SetStripDecimals(kTRUE);
   tdrStyle->SetTickLength(0.03, "XYZ");
   tdrStyle->SetNdivisions(510, "XYZ");
-  tdrStyle->SetPadTickX(1);  // To get tick marks on the opposite side of 
-the frame
+  tdrStyle->SetPadTickX(1);  // To get tick marks on the opposite side of the frame
   tdrStyle->SetPadTickY(1);
 
   tdrStyle->SetPaperSize(20.,20.);

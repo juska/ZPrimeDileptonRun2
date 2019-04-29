@@ -23,7 +23,7 @@ vars=(
 for var in "${vars[@]}" ; do
   lines=( "sigName        $sig"
           "bkgName        $bkg"
-          "varName        $region"
+          "varName        ${region}_${var}"
         )
 
   out=""
