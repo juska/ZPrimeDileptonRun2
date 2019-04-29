@@ -1,0 +1,5 @@
+bkgName         OFF/mm/TTbar0-700_mm.root 
+sigName         OFF/mm/ZprimeToTT_M6000_W600_total_mm.root
+varName         cosTheta1
+xlabel
+
