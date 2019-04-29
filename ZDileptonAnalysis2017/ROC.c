@@ -1,5 +1,5 @@
 /// run using ./run_ROC.sh signal_sample background_sample region
-TGraph* Rocgraph(TH1* sig, TH1* bkg);
+TGraph* Rocgraph(TH1* sig, TH1* bkg, bool sig_upper);
 TGraph* CRgraph(TH1* hist);
 void setPars(TString parFile);
 void setStyle();
@@ -39,21 +39,43 @@ void ROC(TString file="ROC_pars.txt"){
 					      {"wjet", "W+Jets"}, {"gluon", "g_{kk}"}, {"zprime", "Z'"}};
 
   map<TString, TString> axis = {{"cosTheta1","cos #theta_{top,lep}"}, {"cosTheta2","cos #theta_{antitop,lep}"},
-				   {"TOP_xl","#chi_{L}^{t}"}, {"ANTITOP_xl","#chi_{L}^{#bar{t}}"},
-			           {"MT2s","MT2(GeV)"}, {"sT_met","S_{T} [GeV]"},
-				   {"rmin0","DeltaR_{min0}"}, {"rmin1","DeltaR_{min1}"}};
+				{"cosTheta1r","cos #theta_{top,lep}"}, {"cosTheta2r","cos #theta_{antitop,lep}"},
+				{"TOP_xl","#chi_{L}^{t}"}, {"ANTITOP_xl","#chi_{L}^{#bar{t}}"},
+				{"T_xl","#chi_{L}^{t}"}, {"ANTIT_xl","#chi_{L}^{#bar{t}}"},
+			        {"MT2s","MT2(GeV)"}, {"MT2r","MT2(GeV)"}, {"sT_met","S_{T}(GeV)"},
+				{"rmin0","DeltaR_{min0}"}, {"rmin1","DeltaR_{min1}"}};
+
+  map<TString, TString> var_labels = {{"cosTheta1","cos #theta_{top,lep}"}, {"cosTheta2","cos #theta_{antitop,lep}"},
+				      {"cosTheta1r","cos #theta_{top,lep}"}, {"cosTheta2r","cos #theta_{antitop,lep}"},
+				      {"TOP_xl","#chi_{L}^{t}"}, {"ANTITOP_xl","#chi_{L}^{#bar{t}}"},
+				      {"T_xl","#chi_{L}^{t}"}, {"ANTIT_xl","#chi_{L}^{#bar{t}}"},
+			              {"MT2s","MT2"}, {"MT2r","MT2"}, {"sT_met","S_{T}"},
+				      {"rmin0","DeltaR_{min0}"}, {"rmin1","DeltaR_{min1}"}};
+
+  // for signal accumulated at higher values, sig_density is true
+  map<TString, bool> sig_density = {{"cosTheta1",true}, {"cosTheta2",true},
+				    {"cosTheta1r",true}, {"cosTheta2r",true},
+				    {"TOP_xl",false}, {"ANTITOP_xl",false},
+				    {"T_xl",false}, {"ANTIT_xl",false},
+			            {"MT2s",false}, {"MT2r",true}, {"sT_met",true},
+				    {"rmin0",false}, {"rmin1",false}};
+
+  for (auto const& i_sample : labels) {
+    if(bkgSample.Contains(i_sample.first, TString::kIgnoreCase)) bkgLabel = i_sample.second;
+    if(sigSample.Contains(i_sample.first, TString::kIgnoreCase)) sigLabel = i_sample.second;    
+  }
 
   TCanvas* c = new TCanvas("c", "c", 600, 600);
   c->cd();
   TH1D* h_temp = new TH1D("h1", "h1", sigHist->GetNbinsX(), 0., 1.);
   h_temp->GetYaxis()->SetRangeUser(0,1);
-  h_temp->GetXaxis()->SetTitle("#epsilon_{sig}");
-  h_temp->GetYaxis()->SetTitle("1-#epsilon_{bkg}");
+  h_temp->GetXaxis()->SetTitle(Form("#epsilon_{ %s}",sigLabel.Data()));
+  h_temp->GetYaxis()->SetTitle(Form("1-#epsilon_{ %s}",bkgLabel.Data()));
   h_temp->GetXaxis()->SetTitleOffset(0.65);
   h_temp->GetYaxis()->SetTitleOffset(0.65);
   h_temp->Draw();
 
-  TGraph* gROC = Rocgraph(sigHist, bkgHist); 
+  TGraph* gROC = Rocgraph(sigHist, bkgHist, sig_density[varName]); 
   double * X = gROC->GetX();
   TF1* f = new TF1("f",[&](double *X, double *){ return gROC->Eval(X[0]); },0,1,1);
   double integral = f->Integral(0,1);
@@ -70,16 +92,8 @@ void ROC(TString file="ROC_pars.txt"){
   text.DrawLatex(0.14, 0.92, "CMS"); 
   text.SetTextSize(0.04);
   text.SetTextFont(42);
-
-  for (auto const& i_sample : labels) {
-    if(bkgSample.Contains(i_sample.first, TString::kIgnoreCase)) bkgLabel = i_sample.second;
-    if(sigSample.Contains(i_sample.first, TString::kIgnoreCase)) sigLabel = i_sample.second;    
-  }
-  text.DrawLatex(0.15, 0.18, Form("AUC = %4.3f",  integral)); 
-
-  text.DrawLatex(0.15, 0.28, Form("Discriminator: %s", axis[varName].Data()));
-  text.DrawLatex(0.6, 0.8, Form("Background: %s", bkgLabel.Data())); 
-  text.DrawLatex(0.6, 0.7, Form("Signal: %s",     sigLabel.Data())); 
+  text.DrawLatex(0.2, 0.2, Form("AUC = %4.3f",  integral));  
+  text.DrawLatex(0.2, 0.25, Form("Discriminator: %s", var_labels[varName].Data())); 
   c->Print(Form("roc_%s.pdf",varName.Data()));
   c->Clear();
   c->cd();
@@ -109,29 +123,35 @@ void ROC(TString file="ROC_pars.txt"){
   gCR_bkg->Draw("samep");
 
   text.SetTextColor(4);
-  text.DrawLatex(0.2, 0.7, Form("Background: %s", bkgLabel.Data())); 
+  text.DrawLatex(0.6, 0.3, Form("Background: %s", bkgLabel.Data())); 
   text.SetTextColor(2);
-  text.DrawLatex(0.2, 0.6, Form("Signal: %s",     sigLabel.Data())); 
+  text.DrawLatex(0.6, 0.25, Form("Signal: %s",     sigLabel.Data())); 
   text.SetTextColor(1);
   text.SetTextSize(0.05);
   text.DrawLatex(0.14, 0.92, "CMS"); 
   text.SetTextSize(0.04);
   text.SetTextFont(42);
-  c->Print(Form("rc_%s.pdf",varName.Data()));
+  c->Print(Form("cm_%s.pdf",varName.Data()));
   delete h_temp;
   delete h_temp2;
   delete c;
 
 }
 
-TGraph* Rocgraph(TH1* sig, TH1* bkg) {
+TGraph* Rocgraph(TH1* sig, TH1* bkg, bool sig_upper) {
 
     const int nbins = sig->GetNbinsX();
     double SIG[nbins];
     double BKG[nbins];
     for ( int i = 0; i != nbins; ++i ) {
-      SIG[nbins-i-1] = sig->Integral(nbins-i,nbins)/sig->Integral();
-      BKG[nbins-i-1] = 1.0 - ( bkg->Integral(nbins-i,nbins)/bkg->Integral());
+      if(sig_upper){
+        SIG[i] = sig->Integral(i+1,nbins)/sig->Integral();
+        BKG[i] = 1.0 - ( bkg->Integral(i+1,nbins)/bkg->Integral());
+      }
+      else {
+        SIG[i] = sig->Integral(1,1+i)/sig->Integral();
+        BKG[i] = 1.0 - ( bkg->Integral(1,1+i)/bkg->Integral());
+      }
     }
     TGraph *gROC = new TGraph(nbins,SIG,BKG);    
     return gROC;
@@ -170,9 +190,9 @@ void setPars(TString parFile) {
     while (line.at(0) == ' ') line.erase(0, 1);
     while (line.at(line.length()-1) == ' ') line.erase(line.length()-1, line.length());
 
-    if (var == "bkgName")       bkgName = line;
-    else if (var == "sigName")  sigName = line;
-    else if (var == "varName")  varName = line;
+    if (var == "bkgName")         bkgName = line;
+    else if (var == "sigName")    sigName = line;
+    else if (var == "varName")    varName = line;
 
   }
   file.close();
