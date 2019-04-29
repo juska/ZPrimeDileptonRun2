@@ -61,7 +61,7 @@ void ROC(TString file="ROC_pars.txt"){
   gROC->SetMarkerColor(kRed);
   gROC->SetMarkerStyle(22);  
   gROC->Draw("samep");
-  TLine *l = new TLine(0.,1.,sigHist->GetBinLowEdge(sigHist->GetNbinsX())+sigHist->GetBinWidth(sigHist->GetNbinsX()),0.);
+  TLine *l = new TLine(0.,1.,1,0.);
   l->Draw("same");
 
   TLatex text;
