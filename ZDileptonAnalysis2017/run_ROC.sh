@@ -10,12 +10,18 @@ fi
 sig=${args[0]}
 bkg=${args[1]}
 region=${args[2]}
+
 vars=(
   "cosTheta1"
   "cosTheta2"
+  "cosTheta1r"
+  "cosTheta2r"
   "TOP_xl"
   "ANTITOP_xl"
+  "T_xl"
+  "ANTIT_xl"
   "MT2s"
+  "MT2r"
   "sT_met"
   "rmin0"
   "rmin1"
