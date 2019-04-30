@@ -75,5 +75,42 @@ command for running is "python crab_run_zdilepton2017.py"
 
 =======================================================
 
-2==> analyzer workflow
+3==> analyzer workflow
 =======================================================
+
+Analyzer source file : ZDileptonAnalysis2017/ZDileptonAnalysis2017/bin/analyzer.cc
+
+Analyzer runner :  ZDileptonAnalysis2017/ZDileptonAnalysis2017/python/run_all.py 
+
+Instruction on the selections while running analyzer is documented:
+
+https://github.com/broozbah/ZDileptonAnalysis2017/blob/master/ZDileptonAnalysis2017/python/run_all.py#L2:L4
+
+
+=======================================================
+
+4==> plotter workflow
+=======================================================
+
+Analyzer source file : ZDileptonAnalysis2017/ZDileptonAnalysis2017/bin/plotter.cc
+
+Analyzer runner :  ZDileptonAnalysis2017/ZDileptonAnalysis2017/python/plot_all.py 
+
+Instruction on the selections while running analyzer is documented:
+
+https://github.com/broozbah/ZDileptonAnalysis2017/blob/master/ZDileptonAnalysis2017/python/plot_all.py#L2
+
+
+=======================================================
+
+5==> createLog workflow
+=======================================================
+
+
+Analyzer source file : ZDileptonAnalysis2017/ZDileptonAnalysis2017/bin/createLog.cc
+
+Analyzer runner :  executable createLog 
+
+Instruction on the selections while running analyzer is documented:
+
+https://github.com/broozbah/ZDileptonAnalysis2017/blob/master/ZDileptonAnalysis2017/bin/createLog.cc#L1:L3
