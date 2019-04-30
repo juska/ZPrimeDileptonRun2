@@ -59,3 +59,15 @@ copy all related libraries for analysis (can copy from /uscms_data/d3/broozbah/Z
 
 =======================================================
 
+2==> Skimmer workflow
+=======================================================
+
+source file: ZDileptonAnalysis2017/ZDileptonAnalysis2017/plugins/ZDileptonAnalysis2017.cc
+
+Configuration file: DileptonAnalysis2017/ZDileptonAnalysis2017/python/ConfFile_cfg.py
+(flag to be modified is isMC)
+
+Crab configuration file: ZDileptonAnalysis2017/ZDileptonAnalysis2017/crab_run_zdilepton2017.py to submit multiple samples at once
+to run it, input your sample/samples in a text file and input the text file in crab_run_zdilepton2017.py, line 62 (e.g. RSGluonToTT.txt)
+command for running is "python crab_run_zdilepton2017.py" 
+
