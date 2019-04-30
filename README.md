@@ -1,5 +1,7 @@
 # ZDileptonAnalysis2017
 
+1==> Setting up analyzer workflow and libraries for MT2
+
 mkdir 2017DATA_Zprime
 
 cd 2017DATA_Zprime
