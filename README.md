@@ -67,7 +67,13 @@ source file: ZDileptonAnalysis2017/ZDileptonAnalysis2017/plugins/ZDileptonAnalys
 Configuration file: DileptonAnalysis2017/ZDileptonAnalysis2017/python/ConfFile_cfg.py
 (flag to be modified is isMC)
 
-Crab configuration file: ZDileptonAnalysis2017/ZDileptonAnalysis2017/crab_run_zdilepton2017.py to submit multiple samples at once
+Crab configuration file to submit multiple samples at once: ZDileptonAnalysis2017/ZDileptonAnalysis2017/crab_run_zdilepton2017.py
+
 to run it, input your sample/samples in a text file and input the text file in crab_run_zdilepton2017.py, line 62 (e.g. RSGluonToTT.txt)
+
 command for running is "python crab_run_zdilepton2017.py" 
 
+=======================================================
+
+2==> analyzer workflow
+=======================================================
