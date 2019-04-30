@@ -1,5 +1,5 @@
 /// run using ./run_ROC.sh signal_sample background_sample region
-TGraph* Rocgraph(TH1* sig, TH1* bkg, bool sig_upper);
+TGraph* Rocgraph(TH1* sig, TH1* bkg, bool sig_pop_upper);
 TGraph* CRgraph(TH1* hist);
 void setPars(TString parFile);
 void setStyle();
@@ -138,13 +138,13 @@ void ROC(TString file="ROC_pars.txt"){
 
 }
 
-TGraph* Rocgraph(TH1* sig, TH1* bkg, bool sig_upper) {
+TGraph* Rocgraph(TH1* sig, TH1* bkg, bool sig_pop_upper) {
 
     const int nbins = sig->GetNbinsX();
     double SIG[nbins];
     double BKG[nbins];
     for ( int i = 0; i != nbins; ++i ) {
-      if(sig_upper){
+      if(sig_pop_upper){
         SIG[i] = sig->Integral(i+1,nbins)/sig->Integral();
         BKG[i] = 1.0 - ( bkg->Integral(i+1,nbins)/bkg->Integral());
       }
