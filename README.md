@@ -1,6 +1,7 @@
 # ZDileptonAnalysis2017
 
 1==> Setting up analyzer workflow and libraries for MT2
+=======================================================
 
 mkdir 2017DATA_Zprime
 
@@ -15,7 +16,6 @@ cmsenv
 cd ..
 
 mkdir oxbridge
-
 
 cd /uscms_data/d3/username
 
@@ -55,4 +55,7 @@ then in src
 
 git clone https://github.com/broozbah/ZDileptonAnalysis2017
 
-copied all related libraries
+copy all related libraries for analysis (can copy from /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/)
+
+=======================================================
+
