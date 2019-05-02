@@ -94,6 +94,17 @@ void ROC(TString file="ROC_pars.txt"){
   text.SetTextFont(42);
   text.DrawLatex(0.2, 0.2, Form("AUC = %4.3f",  integral));  
   text.DrawLatex(0.2, 0.25, Form("Discriminator: %s", var_labels[varName].Data())); 
+
+  /*if(varName == "cosTheta1r"|| varName == "cosTheta2r"|| varName == "T_xl" ||varName == "ANTIT_xl" || 
+    varName == "MT2r" || varName == "rmin0" || varName == "rmin1" || varName == "sT_met"){
+    text.DrawLatex(0.6,0.84,"#bf{#geq 1 btag}");
+    text.DrawLatex(0.6,0.74,"#bf{p_{T}^{j0}>100 GeV, p_{T}^{j1}>50 GeV}");
+    text.DrawLatex(0.6,0.64,"#bf{p_{T}^{miss} > 30 GeV}");
+  }*/
+  if (bkgName.Contains("ON/") && sigName.Contains("ON/")){
+    text.DrawLatex(0.6,0.9,"#Delta R_{sum} < 2");
+  }
+
   c->Print(Form("roc_%s.pdf",varName.Data()));
   c->Clear();
   c->cd();
