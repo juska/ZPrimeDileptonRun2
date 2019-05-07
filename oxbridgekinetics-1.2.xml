@@ -1,0 +1,8 @@
+<tool name="oxbridgekinetics-1.2">
+  <lib name="oxbridgekinetics-1.0"/>
+  <client>
+    <environment name="OXBRIDGE_BASE" default="$CMSSW_BASE/oxbridge/install"/>
+    <environment name="LIBDIR" default="$OXBRIDGE_BASE/lib"/>
+    <environment name="INCLUDE" default="$OXBRIDGE_BASE/include/oxbridgekinetics-1.0"/>
+  </client>
+</tool>
