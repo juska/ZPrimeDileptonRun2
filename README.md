@@ -3,23 +3,9 @@
 1==> Setting up analyzer workflow and libraries for MT2
 =======================================================
 
-mkdir 2017DATA_Zprime
-
-cd 2017DATA_Zprime
-
 cmsrel CMSSW_9_4_12
 
-cd CMSSW_9_4_12/
-
-cmsenv
-
-mkdir oxbridge
-
-cd ..
-
-mkdir oxbridge
-
-cd oxbridge
+cd CMSSW_9_4_12/ && cmsenv && mkdir oxbridge && cd ..
 
 wget http://www.hep.phy.cam.ac.uk/~lester/dtm662/mt2/Releases/oxbridgekinetics.tar.gz
 
@@ -27,13 +13,13 @@ tar -xzvf oxbridgekinetics.tar.gz
 
 cd oxbridgekinetics-1.3
 
-./configure --prefix=$PWD/../../CMSSW_9_4_12/oxbridge/install
+./configure --prefix=$PWD/../CMSSW_9_4_12/oxbridge/install
 
 make
 
 make install
 
-cd ../../CMSSW_9_4_12/
+cd ../CMSSW_9_4_12/
 
 wget https://raw.githubusercontent.com/broozbah/ZDileptonAnalysis2017/master/oxbridgekinetics-1.3.xml -P config/toolbox/slc6_amd64_gcc630/tools/selected/
 
