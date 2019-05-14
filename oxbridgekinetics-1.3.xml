@@ -1,4 +1,4 @@
-<tool name="oxbridgekinetics-1.v">
+<tool name="oxbridgekinetics-1.3">
   <lib name="oxbridgekinetics-1.0"/>
   <client>
     <environment name="OXBRIDGE_BASE" default="$CMSSW_BASE/oxbridge/install"/>
