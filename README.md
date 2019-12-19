@@ -1,37 +1,19 @@
-# ZDileptonAnalysis2017
+# ZPrimeDileptonRun2
 
 1==> Setting up analyzer workflow and libraries for MT2
 =======================================================
 
 cmsrel CMSSW_9_4_12
 
-cd CMSSW_9_4_12/ && cmsenv && mkdir oxbridge && cd ..
-
-wget http://www.hep.phy.cam.ac.uk/~lester/dtm662/mt2/Releases/oxbridgekinetics.tar.gz
-
-tar -xzvf oxbridgekinetics.tar.gz
-
-cd oxbridgekinetics-1.3
-
-./configure --prefix=$PWD/../CMSSW_9_4_12/oxbridge/install
-
-make
-
-make install
-
-cd ../CMSSW_9_4_12/
-
-wget https://raw.githubusercontent.com/broozbah/ZDileptonAnalysis2017/master/oxbridgekinetics-1.3.xml -P config/toolbox/slc6_amd64_gcc630/tools/selected/
-
-scram setup oxbridgekinetics-1.3
+cd CMSSW_9_4_12/ && cmsenv
 
 scram b -j 8
 
 cd src
 
-git clone https://github.com/broozbah/ZDileptonAnalysis2017
+git clone https://github.com/juska/ZPrimeDijetRun2
 
-copy all related libraries for analysis (can copy from /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/)
+(copy all related libraries for analysis (can copy from /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/))
 
 =======================================================
 
