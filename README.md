@@ -1,17 +1,18 @@
 # ZPrimeDileptonRun2
 
-1==> Setting up analyzer workflow and libraries for MT2
+1==> Setting up analyzer workflow
 =======================================================
 
-cmsrel CMSSW_9_4_12
 
-cd CMSSW_9_4_12/ && cmsenv
+# Best CMSSW version to be checked
+
+cmsrel CMSSW_10_6_8
+
+cd CMSSW_10_6_8/src && cmsenv
 
 scram b -j 8
 
-cd src
-
-git clone https://github.com/juska/ZPrimeDijetRun2
+git clone https://github.com/juska/ZPrimeDileptonRun2
 
 (copy all related libraries for analysis (can copy from /uscms_data/d3/broozbah/ZPRIME_2017/CMSSW_9_4_12/src/))
 
