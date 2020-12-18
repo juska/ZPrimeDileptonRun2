@@ -1,0 +1,21 @@
+set param_card MASS 6 172.5
+set param_card DECAY 6 auto
+set param_card YUKAWA 6 172.5
+set param_card MASS  52 10
+set param_card MASS  55 1000
+set param_card DECAY 55 auto
+set param_card gVXd  1.0
+set param_card gAXd  0.0
+set param_card gVd11 0.25
+set param_card gVu11 0.25
+set param_card gVd22 0.25
+set param_card gVu22 0.25
+set param_card gVd33 0.25
+set param_card gVu33 0.25
+set param_card gAd11 0.0
+set param_card gAu11 0.0
+set param_card gAd22 0.0
+set param_card gAu22 0.0
+set param_card gAd33 0.0
+set param_card gAu33 0.0
+
